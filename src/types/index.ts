@@ -7,6 +7,8 @@ export interface DhikrItem {
   source: string;
   transliteration?: string;
   translationEn?: string;
+  virtue?: string;
+  reference?: string;
 }
 
 export interface DhikrCategory {
@@ -25,9 +27,10 @@ export interface SurahMeta {
   nameEnglish: string;
   englishTranslation: string;
   numberOfAyahs: number;
+  ayahCount?: number;
   revelationType: 'Meccan' | 'Medinan';
-  pageNumber: number; // Start page in 604-page Medina Mushaf
-  juzNumber: number;  // 1 to 30
+  pageNumber?: number; // Start page in 604-page Medina Mushaf
+  juzNumber?: number;  // 1 to 30
 }
 
 export interface Ayah {
@@ -72,9 +75,26 @@ export interface QuranBookmark {
   surahNameEnglish?: string;
   ayahNumberInSurah: number;
   ayahTextArabic: string;
+  ayahText?: string;
+  pageNumber?: number;
   ayahTextEnglish?: string;
   tafseer?: string;
   timestamp: number;
+}
+
+export interface QuranRibbonBookmark {
+  id: string; // 'ribbon_yellow', 'ribbon_green', 'ribbon_red', 'ribbon_blue'
+  color?: 'yellow' | 'green' | 'red' | 'blue';
+  colorNameArabic?: string;
+  hex?: string;
+  pageNumber: number;
+  surahNumber: number;
+  surahNameArabic?: string;
+  surahName?: string;
+  ayahNumber?: number;
+  timestamp: number;
+  type?: string;
+  title?: string;
 }
 
 export interface NameOfAllah {
@@ -94,6 +114,7 @@ export interface HadithNawawi {
   arabicText: string;
   englishText: string;
   explanation: string;
+  benefits?: string[];
 }
 
 export interface DuaItem {

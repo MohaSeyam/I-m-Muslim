@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { RotateCcw, Volume2, VolumeX, Sparkles, Award } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX, Sparkles, CheckCircle2 } from 'lucide-react';
+import { toArabicNumerals } from '../../data/quranData';
 
 const PRESET_PHRASES = [
   { text: 'سُبْحَانَ اللَّهِ', meaning: 'Glory be to Allah' },
@@ -19,56 +20,125 @@ export const TasbihScreen: React.FC = () => {
   const [selectedPhrase, setSelectedPhrase] = useState(PRESET_PHRASES[0]);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  const playClickSound = () => {
+    if (!soundEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(560, ctx.currentTime);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const playChimeSound = () => {
+    if (!soundEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      [660, 880, 1100].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.08);
+        osc.stop(ctx.currentTime + i * 0.08 + 0.4);
+      });
+    } catch {
+      // Ignore
+    }
+  };
+
   const handleTap = () => {
     setCount(prev => {
       const next = prev + 1;
-      if (next >= target) {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate([60, 50, 60]);
-        }
-      } else {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate(25);
-        }
+      playClickSound();
+
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+          if (next === target) {
+            navigator.vibrate([40, 60, 40]);
+          } else {
+            navigator.vibrate(15);
+          }
+        } catch {}
       }
+
+      if (next === target) {
+        playChimeSound();
+      }
+
       return next;
     });
-    setTotalCount(t => t + 1);
+
+    setTotalCount(prev => prev + 1);
   };
 
   const handleReset = () => {
     setCount(0);
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(30); } catch {}
+    }
   };
 
-  const progress = Math.min((count / target) * 100, 100);
+  const radius = 100;
+  const circumference = 2 * Math.PI * radius;
+  const progressRatio = Math.min(1, count / target);
+  const strokeDashoffset = circumference * (1 - progressRatio);
+  const isTargetReached = count >= target;
 
   return (
-    <div className="space-y-5 pb-24 animate-fadeIn">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="h-full max-h-full flex flex-col justify-between overflow-hidden screen-fade-in select-none gap-2">
+      {/* 1. Header (flex-shrink-0) */}
+      <div className="flex items-center justify-between flex-shrink-0">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">المسبحة الإلكترونية</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">تسبيح واستغفار وذكر لله تعالى</p>
+          <h2 className="text-base sm:text-lg font-extrabold font-display text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-coolgreen-700 dark:text-coolgreen-400" />
+            المسبحة الإلكترونية
+          </h2>
+          <p className="text-xs font-sans text-gray-500 dark:text-gray-400">
+            مجموع التسبيحات اليوم: <span className="font-extrabold font-display text-burgundy-700 dark:text-burgundy-300">{toArabicNumerals(totalCount)}</span>
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-2 rounded-xl bg-white dark:bg-[#15241f] border border-emerald-100 dark:border-emerald-950 text-gray-600 dark:text-gray-300"
+            className={`p-2 rounded-xl border text-xs flex items-center transition cursor-pointer ${
+              soundEnabled
+                ? 'bg-coolgreen-50 dark:bg-coolgreen-950/40 text-coolgreen-800 dark:text-coolgreen-300 border-coolgreen-500/20'
+                : 'bg-white/80 dark:bg-[#071611] text-gray-400 border-coolgreen-500/15'
+            }`}
+            title={soundEnabled ? 'صوت النقر مفعّل' : 'صوت النقر مكتوم'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-600" /> : <VolumeX className="w-4 h-4 text-gray-400" />}
+            {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-coolgreen-700 dark:text-coolgreen-400" /> : <VolumeX className="w-3.5 h-3.5 text-gray-400" />}
           </button>
           <button
             onClick={handleReset}
-            className="p-2 rounded-xl bg-white dark:bg-[#15241f] border border-emerald-100 dark:border-emerald-950 text-gray-600 dark:text-gray-300 hover:text-red-500"
+            className="p-2 rounded-xl bg-white/80 dark:bg-[#071611] border border-coolgreen-500/20 text-gray-600 dark:text-gray-300 hover:text-burgundy-600 hover:border-burgundy-300 transition cursor-pointer"
             title="تصفير العداد"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Phrase Selector Carousel */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      {/* 2. Phrase Selector Carousel (flex-shrink-0) */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar flex-shrink-0 font-naskh">
         {PRESET_PHRASES.map((phrase, idx) => (
           <button
             key={idx}
@@ -76,10 +146,10 @@ export const TasbihScreen: React.FC = () => {
               setSelectedPhrase(phrase);
               setCount(0);
             }}
-            className={`px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition border ${
+            className={`px-3 py-1.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-150 border backdrop-blur-md cursor-pointer ${
               selectedPhrase.text === phrase.text
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                : 'bg-white dark:bg-[#15241f] text-gray-700 dark:text-gray-300 border-emerald-100 dark:border-emerald-950'
+                ? 'bg-coolgreen-700 text-white border-coolgreen-700 shadow-xs'
+                : 'bg-white/90 dark:bg-[#071611] text-gray-700 dark:text-gray-300 border-coolgreen-500/15 hover:border-coolgreen-500/35'
             }`}
           >
             {phrase.text}
@@ -87,8 +157,8 @@ export const TasbihScreen: React.FC = () => {
         ))}
       </div>
 
-      {/* Target Selector */}
-      <div className="flex justify-center gap-2">
+      {/* 3. Target Selector (flex-shrink-0) */}
+      <div className="flex justify-center gap-1.5 flex-shrink-0 font-sans">
         {[33, 99, 100, 1000].map(t => (
           <button
             key={t}
@@ -96,63 +166,68 @@ export const TasbihScreen: React.FC = () => {
               setTarget(t);
               setCount(0);
             }}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
+            className={`px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
               target === t
-                ? 'bg-emerald-700 text-white'
-                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
+                ? 'bg-burgundy-700 dark:bg-burgundy-600 text-white shadow-xs'
+                : 'bg-white/90 dark:bg-[#071611] text-coolgreen-800 dark:text-iceblue-200 border border-coolgreen-500/20'
             }`}
           >
-            الهدف: {t}
+            الهدف: {toArabicNumerals(t)}
           </button>
         ))}
       </div>
 
-      {/* Big Circular Tap Area */}
-      <div className="flex flex-col items-center justify-center py-6">
+      {/* 4. Big Circular Glassmorphic Tap Area */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center py-2">
         <div
           onClick={handleTap}
-          className="relative w-64 h-64 rounded-full flex flex-col items-center justify-center bg-gradient-to-tr from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-2xl shadow-emerald-900/30 cursor-pointer active:scale-95 transition-transform duration-150 select-none"
+          className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full flex flex-col items-center justify-center backdrop-blur-2xl bg-gradient-to-br from-coolgreen-800 via-coolgreen-900 to-[#041510] text-white shadow-2xl shadow-coolgreen-950/40 dark:shadow-black/70 cursor-pointer active:scale-95 transition-transform duration-150 select-none border border-coolgreen-400/30 dark:border-burgundy-400/30 group"
         >
-          {/* Progress Ring Simulation */}
-          <div className="absolute inset-2 rounded-full border-4 border-white/20" />
-          <div
-            className="absolute inset-2 rounded-full border-4 border-emerald-300 transition-all duration-200"
-            style={{
-              clipPath: `polygon(50% 50%, 50% 0%, ${progress >= 25 ? '100% 0%' : '50% 0%'}, ${progress >= 50 ? '100% 100%' : '50% 50%'}, ${progress >= 75 ? '0% 100%' : '50% 50%'}, ${progress >= 100 ? '0% 0%' : '50% 50%'})`
-            }}
-          />
+          {/* SVG Progress Ring */}
+          <svg className="absolute inset-0 w-full h-full -rotate-90 p-2" viewBox="0 0 240 240">
+            <circle
+              cx="120"
+              cy="120"
+              r={radius}
+              className="stroke-white/15 dark:stroke-white/10 fill-none"
+              strokeWidth="8"
+            />
+            <circle
+              cx="120"
+              cy="120"
+              r={radius}
+              className="stroke-iceblue-400 fill-none transition-all duration-300 ease-out"
+              strokeWidth="8"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+            />
+          </svg>
 
-          <div className="z-10 text-center space-y-2 px-6">
-            <span className="font-quran text-lg font-bold text-emerald-100 block leading-tight">
+          <div className="z-10 text-center space-y-2 px-5">
+            <span className="font-naskh text-lg sm:text-xl font-bold text-iceblue-100 block leading-tight">
               {selectedPhrase.text}
             </span>
-            <span className="text-5xl font-black tracking-tight block">
-              {count}
+            <span className="text-5xl sm:text-6xl font-black tracking-tight block font-display text-white">
+              {toArabicNumerals(count)}
             </span>
-            <span className="text-xs text-emerald-200 block font-semibold">
-              الهدف: {target}
+            <span className="text-xs text-iceblue-200 block font-bold font-sans flex items-center justify-center gap-1">
+              {isTargetReached ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-burgundy-300" />
+                  <span>اكتمل الهدف ({toArabicNumerals(target)})</span>
+                </>
+              ) : (
+                <span>الهدف: {toArabicNumerals(target)} (متبقي {toArabicNumerals(Math.max(0, target - count))})</span>
+              )}
             </span>
           </div>
         </div>
 
-        <p className="text-xs text-gray-400 mt-4 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-          اضغط في أي مكان داخل الدائرة للتسبيح
+        <p className="text-xs font-sans text-coolgreen-800 dark:text-coolgreen-300 mt-2.5 flex items-center gap-1 font-medium">
+          <Sparkles className="w-3.5 h-3.5 text-burgundy-500" />
+          اضغط داخل الدائرة للتسبيح المبارك
         </p>
-      </div>
-
-      {/* Total Sessions Stats */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-[#15241f] border border-emerald-100 dark:border-emerald-950 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-            <Award className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-bold text-sm text-gray-900 dark:text-gray-100">إجمالي التسبيحات في الجلسة</h4>
-            <p className="text-xs text-gray-500 dark:text-gray-400">تقبل الله طاعتكم ورفع درجاتكم</p>
-          </div>
-        </div>
-        <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{totalCount}</span>
       </div>
     </div>
   );

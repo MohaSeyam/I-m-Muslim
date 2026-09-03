@@ -1,49 +1,112 @@
-import React from 'react';
-import { Moon, Sun, BookOpen, Volume2, Sparkles } from 'lucide-react';
-import { getHijriDate } from '../utils/prayerTimes';
+import React, { useState, useEffect } from 'react';
+import { WifiOff, ArrowRight, Settings, Search } from 'lucide-react';
+import { getHijriDate } from '../utils/hijriCalendar';
+import { AppLogo } from './AppLogo';
 
 interface HeaderProps {
-  darkMode: boolean;
-  setDarkMode: (val: boolean) => void;
+  darkMode?: boolean;
+  setDarkMode?: (val: boolean) => void;
   activeTab: string;
-  onOpenSettings?: () => void;
+  isHidden?: boolean;
+  canGoBack?: boolean;
+  onBack?: () => void;
+  onNavigateHome?: () => void;
+  onNavigateToSettings?: () => void;
+  onOpenSearch?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  darkMode,
-  setDarkMode,
-  activeTab
+  darkMode: _darkMode,
+  setDarkMode: _setDarkMode,
+  activeTab: _activeTab,
+  isHidden = false,
+  canGoBack = false,
+  onBack,
+  onNavigateHome,
+  onNavigateToSettings,
+  onOpenSearch
 }) => {
-  const hijri = getHijriDate();
+  const hijri = getHijriDate(new Date());
+
+  if (isHidden) return null;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#111f1a]/90 backdrop-blur-md border-b border-emerald-100 dark:border-emerald-950/60 px-4 py-3 shadow-sm transition-colors">
-      <div className="max-w-4xl mx-auto flex items-center justify-between">
-        {/* Brand & Hijri Date */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-700 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-700/20">
-            <span className="text-xl font-bold">🕌</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold text-emerald-950 dark:text-emerald-50">أنا مسلم</h1>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-semibold">
-                {hijri.day} {hijri.monthNameAr} {hijri.year} هـ
-              </span>
+    <header className="h-14 landscape:h-11 flex-shrink-0 z-40 liquid-glass border-b border-gray-200/80 dark:border-white/10 px-3 sm:px-4 landscape:px-4 flex items-center transition-all duration-300">
+      <div className="w-full max-w-xl landscape:max-w-5xl mx-auto flex items-center justify-between">
+        {/* Brand & Hijri Date / Back Button */}
+        <div className="flex items-center gap-2">
+          {canGoBack && onBack && (
+            <button
+              onClick={() => {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                  try { navigator.vibrate(15); } catch {}
+                }
+                onBack();
+              }}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-2xl liquid-pill text-coolgreen-900 dark:text-emerald-400 font-bold text-xs flex items-center gap-1 cursor-pointer transition active:scale-95 shadow-2xs font-sans hover:bg-white/80 dark:hover:bg-white/15"
+              title="الرجوع إلى الصفحة السابقة"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span className="hidden sm:inline">رجوع</span>
+            </button>
+          )}
+
+          <div
+            onClick={() => onNavigateHome && onNavigateHome()}
+            className="flex items-center gap-2 cursor-pointer group"
+            title="الرئيسية"
+          >
+            <div className="relative transition-transform group-hover:scale-105 active:scale-95">
+              <AppLogo size={34} />
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">تطبيقك الإسلامي اليومي الشامل</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm sm:text-base font-extrabold bg-gradient-to-r from-coolgreen-950 via-coolgreen-800 to-emerald-700 dark:from-slate-100 dark:via-emerald-200 dark:to-emerald-400 bg-clip-text text-transparent tracking-tight font-display">
+                  أنا مسلم
+                </h1>
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full liquid-pill text-coolgreen-900 dark:text-emerald-400 font-bold flex items-center gap-1 font-sans">
+                  <span>{hijri.day}</span>
+                  <span>{hijri.monthNameAr}</span>
+                  <span>{hijri.year} هـ</span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 transition"
-            title="تبديل المظهر"
-          >
-            {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-emerald-800" />}
-          </button>
+        {/* Left Side: Minimal Search Icon + Settings */}
+        <div className="flex items-center gap-1.5">
+          {onOpenSearch && (
+            <button
+              onClick={() => {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                  try { navigator.vibrate(10); } catch {}
+                }
+                onOpenSearch();
+              }}
+              className="p-2 sm:px-2.5 sm:py-1.5 rounded-2xl liquid-pill text-gray-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400 shadow-xs transition duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer font-sans"
+              title="بحث سريع (سور، آيات، أذكار، أدعية)"
+            >
+              <Search className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-xs font-bold hidden sm:inline">بحث</span>
+            </button>
+          )}
+
+          {onNavigateToSettings && (
+            <button
+              onClick={() => {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                  try { navigator.vibrate(15); } catch {}
+                }
+                onNavigateToSettings();
+              }}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-2xl liquid-pill text-gray-700 dark:text-slate-300 hover:text-coolgreen-800 dark:hover:text-emerald-400 shadow-xs transition duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer font-sans"
+              title="الإعدادات والتفضيلات"
+            >
+              <Settings className="w-4 h-4 text-coolgreen-800 dark:text-emerald-400" />
+              <span className="text-xs font-bold hidden xs:inline">الإعدادات</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

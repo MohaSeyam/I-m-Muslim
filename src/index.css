@@ -3,61 +3,328 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
-    font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #FAFCFB;
+    color: #0E2922;
+  }
+
+  /* Deep Neutral Slate / Obsidian Dark Mode - No Green Tint! */
+  .dark body, body.dark {
+    background-color: #090D14;
+    color: #F0F4F8;
   }
 }
 
+/* Atmosphere backgrounds */
+.islamic-canvas-light {
+  background-color: #F8FAF9;
+}
+
+.dark .islamic-canvas-dark {
+  background-color: #090E17;
+}
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
+}
+
+.dark .liquid-glass {
+  background: rgba(18, 24, 36, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+}
+
+.liquid-card {
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.liquid-hero {
+  background: #0B3A2C;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 10px 25px -5px rgba(11, 58, 44, 0.3);
+}
+
+.dark .liquid-hero {
+  background: #0E1726;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6);
+}
+
+.liquid-pill {
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.dark .liquid-pill {
+  background: rgba(24, 32, 48, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Liquid Blob Ambient Floating Keyframes */
+@keyframes floatSlow1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -25px) scale(1.08); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+@keyframes floatSlow2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(-35px, 20px) scale(1.1); }
+  66% { transform: translate(25px, -30px) scale(0.92); }
+}
+
+@keyframes floatSlow3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(20px, 35px) scale(1.05); }
+}
+
+.liquid-orb-1 {
+  animation: floatSlow1 18s ease-in-out infinite;
+}
+
+.liquid-orb-2 {
+  animation: floatSlow2 22s ease-in-out infinite;
+}
+
+.liquid-orb-3 {
+  animation: floatSlow3 26s ease-in-out infinite;
+}
+
+/* Shimmer Highlight */
+.liquid-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 60%
+  );
+  transform: rotate(25deg);
+  animation: shimmerSweep 6s infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmerSweep {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  25%, 100% { transform: translateX(100%) rotate(25deg); }
+}
+
+/* Luxury Cards */
+.card-luxury {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(27, 158, 126, 0.16);
+  box-shadow: 0 4px 20px -2px rgba(15, 101, 80, 0.05), 0 1px 4px 0 rgba(70, 155, 192, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .card-luxury {
+  background: linear-gradient(145deg, rgba(18, 24, 36, 0.95) 0%, rgba(13, 17, 26, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-ice {
+  background: linear-gradient(135deg, rgba(242, 248, 251, 0.92) 0%, rgba(226, 240, 247, 0.75) 100%);
+  border: 1px solid rgba(70, 155, 192, 0.25);
+  box-shadow: 0 4px 18px -2px rgba(42, 100, 128, 0.08);
+}
+
+.dark .card-ice {
+  background: linear-gradient(145deg, rgba(19, 29, 44, 0.9) 0%, rgba(12, 19, 30, 0.96) 100%);
+  border: 1px solid rgba(108, 181, 211, 0.22);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(108, 181, 211, 0.12);
+}
+
+.card-burgundy {
+  background: linear-gradient(135deg, rgba(253, 242, 244, 0.94) 0%, rgba(248, 208, 217, 0.55) 100%);
+  border: 1px solid rgba(182, 44, 81, 0.22);
+  box-shadow: 0 4px 18px -2px rgba(128, 28, 54, 0.08);
+}
+
+.dark .card-burgundy {
+  background: linear-gradient(145deg, rgba(38, 18, 28, 0.9) 0%, rgba(22, 12, 18, 0.96) 100%);
+  border: 1px solid rgba(228, 117, 144, 0.22);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(228, 117, 144, 0.12);
+}
+
+.card-gold {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.9) 0%, rgba(253, 230, 138, 0.45) 100%);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  box-shadow: 0 6px 20px -2px rgba(217, 119, 6, 0.12);
+}
+
+.dark .card-gold {
+  background: linear-gradient(145deg, rgba(35, 27, 16, 0.9) 0%, rgba(20, 16, 11, 0.96) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(245, 158, 11, 0.12);
+}
+
+/* Animations & Transitions */
+.smooth-spring {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.screen-fade-in {
+  animation: screenFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-pop-smooth {
+  animation: modalPopSmooth 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalPopSmooth {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.backdrop-fade-smooth {
+  animation: backdropFadeSmooth 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes backdropFadeSmooth {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.counter-pulse {
+  animation: counterTap 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes counterTap {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* Typography for Quran */
 .font-quran {
-  font-family: 'Amiri Quran', 'Amiri', 'Scheherazade New', serif;
-  line-height: 2.3;
-  word-spacing: 0.15em;
+  font-family: 'Amiri Quran', 'Scheherazade New', 'Amiri', serif;
+  line-height: 2.35;
+  word-spacing: 0.18em;
+  letter-spacing: 0;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "cv01" on, "cv02" on;
 }
 
 .font-uthmani {
-  font-family: 'Scheherazade New', 'Amiri Quran', 'Amiri', serif;
+  font-family: 'Scheherazade New', 'Amiri Quran', serif;
+  line-height: 2.2;
 }
 
-.font-cairo {
-  font-family: 'Cairo', system-ui, sans-serif;
+.font-naskh {
+  font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+  line-height: 1.85;
 }
 
-/* Ornate Quranic Ayah Number Badge */
+/* Ornate Ayah Badge */
 .quran-ayah-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.85em;
-  height: 1.85em;
-  padding: 0 0.25em;
+  min-width: 1.9em;
+  height: 1.9em;
+  padding: 0 0.2em;
   margin: 0 0.35em;
   border-radius: 9999px;
-  font-family: 'Amiri', serif;
-  font-size: 0.75em;
+  font-family: 'Scheherazade New', 'Amiri', serif;
+  font-size: 0.76em;
   line-height: 1;
   vertical-align: middle;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Page Frame for Mushaf */
+/* Mushaf Page Frame - Neutral in Dark Mode */
 .mushaf-page-frame {
-  box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.08), 0 2px 10px -4px rgba(0, 0, 0, 0.04);
+  background-color: #FAF8F2;
+  box-shadow: 0 8px 30px -6px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(16, 185, 129, 0.15);
 }
 
 .dark .mushaf-page-frame {
-  box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.45), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+  background-color: #0E131C;
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
-/* Smooth selection and transitions */
+/* Surah Header Plaque Frame */
+.surah-header-plaque {
+  background: linear-gradient(90deg, rgba(15, 101, 80, 0.06) 0%, rgba(217, 119, 6, 0.12) 50%, rgba(15, 101, 80, 0.06) 100%);
+  border: 1.5px solid rgba(217, 119, 6, 0.32);
+}
+
+.dark .surah-header-plaque {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(245, 158, 11, 0.15) 50%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
+}
+
+/* Interactive Ayah highlight */
 .ayah-interactive {
-  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
 }
 
-/* Custom scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -65,10 +332,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.25);
+  background: rgba(100, 116, 139, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.45);
+  background: rgba(100, 116, 139, 0.45);
 }

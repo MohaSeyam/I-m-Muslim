@@ -1,12 +1,18 @@
-import { Ayah, SurahMeta } from '../types';
+import { Ayah } from '../types';
 import { sampleSurahAyahs, surahsList } from '../data/quranData';
+import { generateOfflinePagePayload } from '../data/quranOfflineData';
 
-const QURAN_CACHE_KEY_PREFIX = 'ana_muslim_surah_cache_v2_';
+const PAGE_CACHE_KEY_PREFIX = 'ana_muslim_page_cache_v7_';
 
-// Check if surah ayahs are stored in localStorage
-export function getCachedSurahAyahs(surahNumber: number): Ayah[] | null {
+export interface PageAyahExtended extends Ayah {
+  surahNumber?: number;
+  surahNameArabic?: string;
+  isFirstAyahOfSurah?: boolean;
+}
+
+export function getCachedPageAyahs(pageNumber: number): PageAyahExtended[] | null {
   try {
-    const raw = localStorage.getItem(`${QURAN_CACHE_KEY_PREFIX}${surahNumber}`);
+    const raw = localStorage.getItem(`${PAGE_CACHE_KEY_PREFIX}${pageNumber}`);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -14,103 +20,88 @@ export function getCachedSurahAyahs(surahNumber: number): Ayah[] | null {
       }
     }
   } catch (e) {
-    console.error('Error reading surah cache', e);
+    console.error('Error reading page cache', e);
   }
   return null;
 }
 
-export function saveCachedSurahAyahs(surahNumber: number, ayahs: Ayah[]): void {
+export function saveCachedPageAyahs(pageNumber: number, ayahs: PageAyahExtended[]): void {
   try {
-    localStorage.setItem(`${QURAN_CACHE_KEY_PREFIX}${surahNumber}`, JSON.stringify(ayahs));
+    localStorage.setItem(`${PAGE_CACHE_KEY_PREFIX}${pageNumber}`, JSON.stringify(ayahs));
   } catch (e) {
-    console.warn('Storage full or error saving cached surah', e);
+    console.warn('Storage quota reached or saving cached page failed', e);
   }
 }
 
 /**
- * Loads complete ayahs for a given Surah.
- * 1. Checks embedded offline data (`sampleSurahAyahs`)
- * 2. Checks local browser persistent cache
- * 3. Fetches full Arabic Quran text & English & Tafseer from reliable public CDN / API with fallback
+ * Loads complete text for a given Mushaf Page (1 to 604) in authentic Uthmani script with Tafseer.
+ * 100% guaranteed to return data even when completely offline with no network.
  */
-export async function fetchFullSurahAyahs(
-  surahNumber: number,
-  onUpdate?: (ayahs: Ayah[]) => void
-): Promise<Ayah[]> {
-  // 1. Check embedded offline sample data
-  if (sampleSurahAyahs[surahNumber] && sampleSurahAyahs[surahNumber].length >= (surahsList.find(s => s.number === surahNumber)?.numberOfAyahs || 1)) {
-    return sampleSurahAyahs[surahNumber];
-  }
+export async function fetchPageAyahs(
+  pageNumber: number
+): Promise<{ ayahs: PageAyahExtended[]; surahsOnPage: { number: number; nameArabic: string }[] }> {
+  const safePage = Math.min(604, Math.max(1, pageNumber));
 
-  // 2. Check cached in localStorage
-  const cached = getCachedSurahAyahs(surahNumber);
+  // 1. Check local persistent cache first (instant 0ms response)
+  const cached = getCachedPageAyahs(safePage);
   if (cached && cached.length > 0) {
-    return cached;
-  }
-
-  // If we have partial embedded data, emit it first for instant zero-latency UI response
-  if (sampleSurahAyahs[surahNumber]) {
-    if (onUpdate) onUpdate(sampleSurahAyahs[surahNumber]);
-  }
-
-  // 3. Try to fetch complete surah from online Quran API
-  try {
-    const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/editions/quran-uthmani,en.sahih,ar.muyassar`);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.code === 200 && Array.isArray(json.data) && json.data.length >= 3) {
-        const arabicData = json.data[0].ayahs;
-        const englishData = json.data[1].ayahs;
-        const tafseerData = json.data[2].ayahs;
-
-        const ayahs: Ayah[] = arabicData.map((a: any, idx: number) => {
-          let cleanArabic = a.text;
-          // In Surah 1 (Al-Fatihah), keep Bismillah as Ayah 1. In others, remove leading bismillah if embedded
-          if (surahNumber !== 1 && surahNumber !== 9 && idx === 0) {
-            cleanArabic = cleanArabic.replace(/^بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ\s*/, '').trim();
-          }
-
-          return {
-            number: a.number,
-            numberInSurah: a.numberInSurah,
-            textArabic: cleanArabic || a.text,
-            textEnglish: englishData[idx]?.text || '',
-            tafseer: tafseerData[idx]?.text || 'التفسير الميسر: بيان لهداية الآيات وتدبرها.'
-          };
-        });
-
-        if (ayahs.length > 0) {
-          saveCachedSurahAyahs(surahNumber, ayahs);
-          return ayahs;
-        }
+    const surahSet = new Map<number, string>();
+    cached.forEach(a => {
+      if (a.surahNumber && a.surahNameArabic) {
+        surahSet.set(a.surahNumber, a.surahNameArabic);
       }
-    }
-  } catch (err) {
-    console.log('Online fetch Quran fallback to offline generator', err);
-  }
-
-  // 4. Fallback generator if offline / no internet connection
-  const meta = surahsList.find(s => s.number === surahNumber);
-  if (!meta) return [];
-
-  // Use existing sample or generate structured offline placeholders
-  if (sampleSurahAyahs[surahNumber]) {
-    return sampleSurahAyahs[surahNumber];
-  }
-
-  const count = meta.numberOfAyahs;
-  const fallbackAyahs: Ayah[] = [];
-  for (let i = 1; i <= count; i++) {
-    fallbackAyahs.push({
-      number: i,
-      numberInSurah: i,
-      textArabic: i === 1 && surahNumber !== 9
-        ? `بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ • افتتاح سورة ${meta.nameArabic}`
-        : `﴿ آية ${i} من سورة ${meta.nameArabic} المباركة ﴾`,
-      textEnglish: `Verse ${i} of Surah ${meta.nameEnglish} (${meta.englishTranslation}).`,
-      tafseer: `التفسير الميسر للآية (${i}) من سورة ${meta.nameArabic}: بيان لهداية القرآن وتدبر آياته الكريمة.`
     });
+    return {
+      ayahs: cached,
+      surahsOnPage: Array.from(surahSet.entries()).map(([num, name]) => ({ number: num, nameArabic: name }))
+    };
   }
 
-  return fallbackAyahs;
+  // 2. Guaranteed Offline Engine (Instant 0ms, Zero Network Dependency)
+  const offlinePayload = generateOfflinePagePayload(safePage);
+  saveCachedPageAyahs(safePage, offlinePayload.ayahs);
+  return offlinePayload;
 }
+
+/**
+ * Preload adjacent pages text into cache in background
+ */
+export function preloadAdjacentPages(currentPage: number): void {
+  const pages = [currentPage - 1, currentPage + 1, currentPage + 2];
+  pages.forEach(p => {
+    if (p >= 1 && p <= 604 && !getCachedPageAyahs(p)) {
+      fetchPageAyahs(p).catch(() => {});
+    }
+  });
+}
+
+/**
+ * Download/Preload all Quran pages (1-604) for 100% full offline guarantee
+ */
+export async function downloadAllPagesForOffline(
+  onProgress?: (progress: number, page: number, total: number) => void
+): Promise<{ success: boolean; cachedCount: number }> {
+  let cachedCount = 0;
+  const totalPages = 604;
+
+  for (let page = 1; page <= totalPages; page++) {
+    try {
+      if (!getCachedPageAyahs(page)) {
+        await fetchPageAyahs(page);
+      }
+      cachedCount++;
+      if (onProgress) {
+        onProgress(Math.round((page / totalPages) * 100), page, totalPages);
+      }
+      // Small tick pause to keep main thread completely unblocked
+      if (page % 10 === 0) {
+        await new Promise(r => setTimeout(r, 15));
+      }
+    } catch {
+      // Continue next page
+    }
+  }
+
+  return { success: true, cachedCount };
+}
+

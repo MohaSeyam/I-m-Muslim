@@ -1,120 +1,208 @@
 import { SurahMeta, Ayah } from '../types';
 
+export const toArabicNumerals = (num: number | string | undefined | null): string => {
+  if (num === undefined || num === null) return '';
+  const digits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return String(num).replace(/\d/g, d => digits[parseInt(d, 10)] || d);
+};
+
+export const juzNamesArabic = [
+  'الجزء الأول',
+  'الجزء الثاني',
+  'الجزء الثالث',
+  'الجزء الرابع',
+  'الجزء الخامس',
+  'الجزء السادس',
+  'الجزء السابع',
+  'الجزء الثامن',
+  'الجزء التاسع',
+  'الجزء العاشر',
+  'الجزء الحادي عشر',
+  'الجزء الثاني عشر',
+  'الجزء الثالث عشر',
+  'الجزء الرابع عشر',
+  'الجزء الخامس عشر',
+  'الجزء السادس عشر',
+  'الجزء السابع عشر',
+  'الجزء الثامن عشر',
+  'الجزء التاسع عشر',
+  'الجزء العشرون',
+  'الجزء الحادي والعشرون',
+  'الجزء الثاني والعشرون',
+  'الجزء الثالث والعشرون',
+  'الجزء الرابع والعشرون',
+  'الجزء الخامس والعشرون',
+  'الجزء السادس والعشرون',
+  'الجزء السابع والعشرون',
+  'الجزء الثامن والعشرون',
+  'الجزء التاسع والعشرون',
+  'الجزء الثلاثون'
+];
+
+export const juzStartPages = [
+  1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+  202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+  402, 422, 442, 462, 482, 502, 522, 542, 562, 582
+];
+
+export interface JuzMeta {
+  number: number;
+  juzNumber?: number;
+  nameArabic: string;
+  startSurahNumber: number;
+  startAyahNumber: number;
+  pageNumber: number;
+  startPage?: number;
+}
+
+export const juzData: JuzMeta[] = [
+  { number: 1, nameArabic: 'الم', startSurahNumber: 1, startAyahNumber: 1, pageNumber: 1 },
+  { number: 2, nameArabic: 'سيقول السفهاء', startSurahNumber: 2, startAyahNumber: 142, pageNumber: 22 },
+  { number: 3, nameArabic: 'تلك الرسل', startSurahNumber: 2, startAyahNumber: 253, pageNumber: 42 },
+  { number: 4, nameArabic: 'لن تنالوا البر', startSurahNumber: 3, startAyahNumber: 93, pageNumber: 62 },
+  { number: 5, nameArabic: 'والمحصنات', startSurahNumber: 4, startAyahNumber: 24, pageNumber: 82 },
+  { number: 6, nameArabic: 'لا يحب الله', startSurahNumber: 4, startAyahNumber: 148, pageNumber: 102 },
+  { number: 7, nameArabic: 'وإذا سمعوا', startSurahNumber: 5, startAyahNumber: 82, pageNumber: 122 },
+  { number: 8, nameArabic: 'ولو أننا', startSurahNumber: 6, startAyahNumber: 111, pageNumber: 142 },
+  { number: 9, nameArabic: 'قال الملأ', startSurahNumber: 7, startAyahNumber: 88, pageNumber: 162 },
+  { number: 10, nameArabic: 'واعلموا', startSurahNumber: 8, startAyahNumber: 41, pageNumber: 182 },
+  { number: 11, nameArabic: 'يعتذرون', startSurahNumber: 9, startAyahNumber: 93, pageNumber: 202 },
+  { number: 12, nameArabic: 'وما من دابة', startSurahNumber: 11, startAyahNumber: 6, pageNumber: 222 },
+  { number: 13, nameArabic: 'وما أبرئ', startSurahNumber: 12, startAyahNumber: 53, pageNumber: 242 },
+  { number: 14, nameArabic: 'ربما', startSurahNumber: 15, startAyahNumber: 1, pageNumber: 262 },
+  { number: 15, nameArabic: 'سبحان الذي', startSurahNumber: 17, startAyahNumber: 1, pageNumber: 282 },
+  { number: 16, nameArabic: 'قال ألم', startSurahNumber: 18, startAyahNumber: 75, pageNumber: 302 },
+  { number: 17, nameArabic: 'اقترب للناس', startSurahNumber: 21, startAyahNumber: 1, pageNumber: 322 },
+  { number: 18, nameArabic: 'قد أفلح', startSurahNumber: 23, startAyahNumber: 1, pageNumber: 342 },
+  { number: 19, nameArabic: 'وقال الذين', startSurahNumber: 25, startAyahNumber: 21, pageNumber: 362 },
+  { number: 20, nameArabic: 'أمن خلق', startSurahNumber: 27, startAyahNumber: 56, pageNumber: 382 },
+  { number: 21, nameArabic: 'اتل ما أوحي', startSurahNumber: 29, startAyahNumber: 46, pageNumber: 402 },
+  { number: 22, nameArabic: 'ومن يقنت', startSurahNumber: 33, startAyahNumber: 31, pageNumber: 422 },
+  { number: 23, nameArabic: 'وما لي لا أعبد', startSurahNumber: 36, startAyahNumber: 28, pageNumber: 442 },
+  { number: 24, nameArabic: 'فمن أظلم', startSurahNumber: 39, startAyahNumber: 32, pageNumber: 462 },
+  { number: 25, nameArabic: 'إليه يرد', startSurahNumber: 41, startAyahNumber: 47, pageNumber: 482 },
+  { number: 26, nameArabic: 'حم', startSurahNumber: 46, startAyahNumber: 1, pageNumber: 502 },
+  { number: 27, nameArabic: 'قال فما خطبكم', startSurahNumber: 51, startAyahNumber: 31, pageNumber: 522 },
+  { number: 28, nameArabic: 'قد سمع الله', startSurahNumber: 58, startAyahNumber: 1, pageNumber: 542 },
+  { number: 29, nameArabic: 'تبارك الذي', startSurahNumber: 67, startAyahNumber: 1, pageNumber: 562 },
+  { number: 30, nameArabic: 'عمّ يتساءلون', startSurahNumber: 78, startAyahNumber: 1, pageNumber: 582 }
+];
+
 export const surahsList: SurahMeta[] = [
-  { number: 1, nameArabic: 'الفاتحة', nameEnglish: 'Al-Fatihah', englishTranslation: 'The Opening', numberOfAyahs: 7, revelationType: 'Meccan' },
-  { number: 2, nameArabic: 'البقرة', nameEnglish: 'Al-Baqarah', englishTranslation: 'The Cow', numberOfAyahs: 286, revelationType: 'Medinan' },
-  { number: 3, nameArabic: 'آل عمران', nameEnglish: 'Aal-Imran', englishTranslation: 'The Family of Imran', numberOfAyahs: 200, revelationType: 'Medinan' },
-  { number: 4, nameArabic: 'النساء', nameEnglish: 'An-Nisa', englishTranslation: 'The Women', numberOfAyahs: 176, revelationType: 'Medinan' },
-  { number: 5, nameArabic: 'المائدة', nameEnglish: 'Al-Ma\'idah', englishTranslation: 'The Table Spread', numberOfAyahs: 120, revelationType: 'Medinan' },
-  { number: 6, nameArabic: 'الأنعام', nameEnglish: 'Al-An\'am', englishTranslation: 'The Cattle', numberOfAyahs: 165, revelationType: 'Meccan' },
-  { number: 7, nameArabic: 'الأعراف', nameEnglish: 'Al-A\'raf', englishTranslation: 'The Heights', numberOfAyahs: 206, revelationType: 'Meccan' },
-  { number: 8, nameArabic: 'الأنفال', nameEnglish: 'Al-Anfal', englishTranslation: 'The Spoils of War', numberOfAyahs: 75, revelationType: 'Medinan' },
-  { number: 9, nameArabic: 'التوبة', nameEnglish: 'At-Tawbah', englishTranslation: 'The Repentance', numberOfAyahs: 129, revelationType: 'Medinan' },
-  { number: 10, nameArabic: 'يونس', nameEnglish: 'Yunus', englishTranslation: 'Jonah', numberOfAyahs: 109, revelationType: 'Meccan' },
-  { number: 11, nameArabic: 'هود', nameEnglish: 'Hud', englishTranslation: 'Hud', numberOfAyahs: 123, revelationType: 'Meccan' },
-  { number: 12, nameArabic: 'يوسف', nameEnglish: 'Yusuf', englishTranslation: 'Joseph', numberOfAyahs: 111, revelationType: 'Meccan' },
-  { number: 13, nameArabic: 'الرعد', nameEnglish: 'Ar-Ra\'d', englishTranslation: 'The Thunder', numberOfAyahs: 43, revelationType: 'Medinan' },
-  { number: 14, nameArabic: 'إبراهيم', nameEnglish: 'Ibrahim', englishTranslation: 'Abraham', numberOfAyahs: 52, revelationType: 'Meccan' },
-  { number: 15, nameArabic: 'الحجر', nameEnglish: 'Al-Hijr', englishTranslation: 'The Rocky Tract', numberOfAyahs: 99, revelationType: 'Meccan' },
-  { number: 16, nameArabic: 'النحل', nameEnglish: 'An-Nahl', englishTranslation: 'The Bee', numberOfAyahs: 128, revelationType: 'Meccan' },
-  { number: 17, nameArabic: 'الإسراء', nameEnglish: 'Al-Isra', englishTranslation: 'The Night Journey', numberOfAyahs: 111, revelationType: 'Meccan' },
-  { number: 18, nameArabic: 'الكهف', nameEnglish: 'Al-Kahf', englishTranslation: 'The Cave', numberOfAyahs: 110, revelationType: 'Meccan' },
-  { number: 19, nameArabic: 'مريم', nameEnglish: 'Maryam', englishTranslation: 'Mary', numberOfAyahs: 98, revelationType: 'Meccan' },
-  { number: 20, nameArabic: 'طه', nameEnglish: 'Ta-Ha', englishTranslation: 'Ta-Ha', numberOfAyahs: 135, revelationType: 'Meccan' },
-  { number: 21, nameArabic: 'الأنبياء', nameEnglish: 'Al-Anbiya', englishTranslation: 'The Prophets', numberOfAyahs: 112, revelationType: 'Meccan' },
-  { number: 22, nameArabic: 'الحج', nameEnglish: 'Al-Hajj', englishTranslation: 'The Pilgrimage', numberOfAyahs: 78, revelationType: 'Medinan' },
-  { number: 23, nameArabic: 'المؤمنون', nameEnglish: 'Al-Mu\'minun', englishTranslation: 'The Believers', numberOfAyahs: 118, revelationType: 'Meccan' },
-  { number: 24, nameArabic: 'النور', nameEnglish: 'An-Nur', englishTranslation: 'The Light', numberOfAyahs: 64, revelationType: 'Medinan' },
-  { number: 25, nameArabic: 'الفرقان', nameEnglish: 'Al-Furqan', englishTranslation: 'The Criterion', numberOfAyahs: 77, revelationType: 'Meccan' },
-  { number: 26, nameArabic: 'الشعراء', nameEnglish: 'Ash-Shu\'ara', englishTranslation: 'The Poets', numberOfAyahs: 227, revelationType: 'Meccan' },
-  { number: 27, nameArabic: 'النمل', nameEnglish: 'An-Naml', englishTranslation: 'The Ant', numberOfAyahs: 93, revelationType: 'Meccan' },
-  { number: 28, nameArabic: 'القصص', nameEnglish: 'Al-Qasas', englishTranslation: 'The Stories', numberOfAyahs: 88, revelationType: 'Meccan' },
-  { number: 29, nameArabic: 'العنكبوت', nameEnglish: 'Al-Ankabut', englishTranslation: 'The Spider', numberOfAyahs: 69, revelationType: 'Meccan' },
-  { number: 30, nameArabic: 'الروم', nameEnglish: 'Ar-Rum', englishTranslation: 'The Romans', numberOfAyahs: 60, revelationType: 'Meccan' },
-  { number: 31, nameArabic: 'لقمان', nameEnglish: 'Luqman', englishTranslation: 'Luqman', numberOfAyahs: 34, revelationType: 'Meccan' },
-  { number: 32, nameArabic: 'السجدة', nameEnglish: 'As-Sajdah', englishTranslation: 'The Prostration', numberOfAyahs: 30, revelationType: 'Meccan' },
-  { number: 33, nameArabic: 'الأحزاب', nameEnglish: 'Al-Ahzab', englishTranslation: 'The Combined Forces', numberOfAyahs: 73, revelationType: 'Medinan' },
-  { number: 34, nameArabic: 'سبأ', nameEnglish: 'Saba', englishTranslation: 'Sheba', numberOfAyahs: 54, revelationType: 'Meccan' },
-  { number: 35, nameArabic: 'فاطر', nameEnglish: 'Fatir', englishTranslation: 'The Originator', numberOfAyahs: 45, revelationType: 'Meccan' },
-  { number: 36, nameArabic: 'يس', nameEnglish: 'Ya-Sin', englishTranslation: 'Ya-Seen', numberOfAyahs: 83, revelationType: 'Meccan' },
-  { number: 37, nameArabic: 'الصافات', nameEnglish: 'As-Saffat', englishTranslation: 'Those who set the Ranks', numberOfAyahs: 182, revelationType: 'Meccan' },
-  { number: 38, nameArabic: 'ص', nameEnglish: 'Sad', englishTranslation: 'The Letter Sad', numberOfAyahs: 88, revelationType: 'Meccan' },
-  { number: 39, nameArabic: 'الزمر', nameEnglish: 'Az-Zumar', englishTranslation: 'The Troops', numberOfAyahs: 75, revelationType: 'Meccan' },
-  { number: 40, nameArabic: 'غافر', nameEnglish: 'Ghafir', englishTranslation: 'The Forgiver', numberOfAyahs: 85, revelationType: 'Meccan' },
-  { number: 41, nameArabic: 'فصلت', nameEnglish: 'Fussilat', englishTranslation: 'Explained in Detail', numberOfAyahs: 54, revelationType: 'Meccan' },
-  { number: 42, nameArabic: 'الشورى', nameEnglish: 'Ash-Shura', englishTranslation: 'The Consultation', numberOfAyahs: 53, revelationType: 'Meccan' },
-  { number: 43, nameArabic: 'الزخرف', nameEnglish: 'Az-Zukhruf', englishTranslation: 'The Ornaments of Gold', numberOfAyahs: 89, revelationType: 'Meccan' },
-  { number: 44, nameArabic: 'الدخان', nameEnglish: 'Ad-Dukhan', englishTranslation: 'The Smoke', numberOfAyahs: 59, revelationType: 'Meccan' },
-  { number: 45, nameArabic: 'الجاثية', nameEnglish: 'Al-Jathiyah', englishTranslation: 'The Crouching', numberOfAyahs: 37, revelationType: 'Meccan' },
-  { number: 46, nameArabic: 'الأحقاف', nameEnglish: 'Al-Ahqaf', englishTranslation: 'The Wind-Curved Sandhills', numberOfAyahs: 35, revelationType: 'Meccan' },
-  { number: 47, nameArabic: 'محمد', nameEnglish: 'Muhammad', englishTranslation: 'Muhammad', numberOfAyahs: 38, revelationType: 'Medinan' },
-  { number: 48, nameArabic: 'الفتح', nameEnglish: 'Al-Fath', englishTranslation: 'The Victory', numberOfAyahs: 29, revelationType: 'Medinan' },
-  { number: 49, nameArabic: 'الحجرات', nameEnglish: 'Al-Hujurat', englishTranslation: 'The Rooms', numberOfAyahs: 18, revelationType: 'Medinan' },
-  { number: 50, nameArabic: 'ق', nameEnglish: 'Qaf', englishTranslation: 'The Letter Qaf', numberOfAyahs: 45, revelationType: 'Meccan' },
-  { number: 51, nameArabic: 'الذاريات', nameEnglish: 'Adh-Dhariyat', englishTranslation: 'The Winnowing Winds', numberOfAyahs: 60, revelationType: 'Meccan' },
-  { number: 52, nameArabic: 'الطور', nameEnglish: 'At-Tur', englishTranslation: 'The Mount', numberOfAyahs: 49, revelationType: 'Meccan' },
-  { number: 53, nameArabic: 'النجم', nameEnglish: 'An-Najm', englishTranslation: 'The Star', numberOfAyahs: 62, revelationType: 'Meccan' },
-  { number: 54, nameArabic: 'القمر', nameEnglish: 'Al-Qamar', englishTranslation: 'The Moon', numberOfAyahs: 55, revelationType: 'Meccan' },
-  { number: 55, nameArabic: 'الرحمن', nameEnglish: 'Ar-Rahman', englishTranslation: 'The Beneficent', numberOfAyahs: 78, revelationType: 'Medinan' },
-  { number: 56, nameArabic: 'الواقعة', nameEnglish: 'Al-Waqi\'ah', englishTranslation: 'The Inevitable', numberOfAyahs: 96, revelationType: 'Meccan' },
-  { number: 57, nameArabic: 'الحديد', nameEnglish: 'Al-Hadid', englishTranslation: 'The Iron', numberOfAyahs: 29, revelationType: 'Medinan' },
-  { number: 58, nameArabic: 'المجادلة', nameEnglish: 'Al-Mujadila', englishTranslation: 'The Pleading Woman', numberOfAyahs: 22, revelationType: 'Medinan' },
-  { number: 59, nameArabic: 'الحشر', nameEnglish: 'Al-Hashr', englishTranslation: 'The Exile', numberOfAyahs: 24, revelationType: 'Medinan' },
-  { number: 60, nameArabic: 'الممتحنة', nameEnglish: 'Al-Mumtahanah', englishTranslation: 'She that is to be examined', numberOfAyahs: 13, revelationType: 'Medinan' },
-  { number: 61, nameArabic: 'الصف', nameEnglish: 'As-Saff', englishTranslation: 'The Ranks', numberOfAyahs: 14, revelationType: 'Medinan' },
-  { number: 62, nameArabic: 'الجمعة', nameEnglish: 'Al-Jumu\'ah', englishTranslation: 'The Congregation', numberOfAyahs: 11, revelationType: 'Medinan' },
-  { number: 63, nameArabic: 'المنافقون', nameEnglish: 'Al-Munafiqun', englishTranslation: 'The Hypocrites', numberOfAyahs: 11, revelationType: 'Medinan' },
-  { number: 64, nameArabic: 'التغابن', nameEnglish: 'At-Taghabun', englishTranslation: 'The Mutual Disillusion', numberOfAyahs: 18, revelationType: 'Medinan' },
-  { number: 65, nameArabic: 'الطلاق', nameEnglish: 'At-Talaq', englishTranslation: 'The Divorce', numberOfAyahs: 12, revelationType: 'Medinan' },
-  { number: 66, nameArabic: 'التحريم', nameEnglish: 'At-Tahrim', englishTranslation: 'The Prohibition', numberOfAyahs: 12, revelationType: 'Medinan' },
-  { number: 67, nameArabic: 'الملك', nameEnglish: 'Al-Mulk', englishTranslation: 'The Sovereignty', numberOfAyahs: 30, revelationType: 'Meccan' },
-  { number: 68, nameArabic: 'القلم', nameEnglish: 'Al-Qalam', englishTranslation: 'The Pen', numberOfAyahs: 52, revelationType: 'Meccan' },
-  { number: 69, nameArabic: 'الحاقة', nameEnglish: 'Al-Haqqah', englishTranslation: 'The Inevitable', numberOfAyahs: 52, revelationType: 'Meccan' },
-  { number: 70, nameArabic: 'المعارج', nameEnglish: 'Al-Ma\'arij', englishTranslation: 'The Ascending Stairways', numberOfAyahs: 44, revelationType: 'Meccan' },
-  { number: 71, nameArabic: 'نوح', nameEnglish: 'Nuh', englishTranslation: 'Noah', numberOfAyahs: 28, revelationType: 'Meccan' },
-  { number: 72, nameArabic: 'الجن', nameEnglish: 'Al-Jinn', englishTranslation: 'The Jinn', numberOfAyahs: 28, revelationType: 'Meccan' },
-  { number: 73, nameArabic: 'المزمل', nameEnglish: 'Al-Muzzammil', englishTranslation: 'The Enshrouded One', numberOfAyahs: 20, revelationType: 'Meccan' },
-  { number: 74, nameArabic: 'المدثر', nameEnglish: 'Al-Muddaththir', englishTranslation: 'The Cloaked One', numberOfAyahs: 56, revelationType: 'Meccan' },
-  { number: 75, nameArabic: 'القيامة', nameEnglish: 'Al-Qiyamah', englishTranslation: 'The Resurrection', numberOfAyahs: 40, revelationType: 'Meccan' },
-  { number: 76, nameArabic: 'الإنسان', nameEnglish: 'Al-Insan', englishTranslation: 'The Human', numberOfAyahs: 31, revelationType: 'Medinan' },
-  { number: 77, nameArabic: 'المرسلات', nameEnglish: 'Al-Mursalat', englishTranslation: 'The Emissaries', numberOfAyahs: 50, revelationType: 'Meccan' },
-  { number: 78, nameArabic: 'النبأ', nameEnglish: 'An-Naba', englishTranslation: 'The Tidings', numberOfAyahs: 40, revelationType: 'Meccan' },
-  { number: 79, nameArabic: 'النازعات', nameEnglish: 'An-Nazi\'at', englishTranslation: 'Those who drag forth', numberOfAyahs: 46, revelationType: 'Meccan' },
-  { number: 80, nameArabic: 'عبس', nameEnglish: 'Abasa', englishTranslation: 'He Frowned', numberOfAyahs: 42, revelationType: 'Meccan' },
-  { number: 81, nameArabic: 'التكوير', nameEnglish: 'At-Takwir', englishTranslation: 'The Overthrowing', numberOfAyahs: 29, revelationType: 'Meccan' },
-  { number: 82, nameArabic: 'الانفطار', nameEnglish: 'Al-Infitar', englishTranslation: 'The Cleaving', numberOfAyahs: 19, revelationType: 'Meccan' },
-  { number: 83, nameArabic: 'المطففين', nameEnglish: 'Al-Mutaffifin', englishTranslation: 'The Defrauding', numberOfAyahs: 36, revelationType: 'Meccan' },
-  { number: 84, nameArabic: 'الانشقاق', nameEnglish: 'Al-Inshiqaq', englishTranslation: 'The Splitting Open', numberOfAyahs: 25, revelationType: 'Meccan' },
-  { number: 85, nameArabic: 'البروج', nameEnglish: 'Al-Buruj', englishTranslation: 'The Mansions of the Stars', numberOfAyahs: 22, revelationType: 'Meccan' },
-  { number: 86, nameArabic: 'الطارق', nameEnglish: 'At-Tariq', englishTranslation: 'The Nightcomer', numberOfAyahs: 17, revelationType: 'Meccan' },
-  { number: 87, nameArabic: 'الأعلى', nameEnglish: 'Al-A\'la', englishTranslation: 'The Most High', numberOfAyahs: 19, revelationType: 'Meccan' },
-  { number: 88, nameArabic: 'الغاشية', nameEnglish: 'Al-Ghashiyah', englishTranslation: 'The Overwhelming', numberOfAyahs: 26, revelationType: 'Meccan' },
-  { number: 89, nameArabic: 'الفجر', nameEnglish: 'Al-Fajr', englishTranslation: 'The Dawn', numberOfAyahs: 30, revelationType: 'Meccan' },
-  { number: 90, nameArabic: 'البلد', nameEnglish: 'Al-Balad', englishTranslation: 'The City', numberOfAyahs: 20, revelationType: 'Meccan' },
-  { number: 91, nameArabic: 'الشمس', nameEnglish: 'Ash-Shams', englishTranslation: 'The Sun', numberOfAyahs: 15, revelationType: 'Meccan' },
-  { number: 92, nameArabic: 'الليل', nameEnglish: 'Al-Layl', englishTranslation: 'The Night', numberOfAyahs: 21, revelationType: 'Meccan' },
-  { number: 93, nameArabic: 'الضحى', nameEnglish: 'Ad-Duha', englishTranslation: 'The Morning Hours', numberOfAyahs: 11, revelationType: 'Meccan' },
-  { number: 94, nameArabic: 'الشرح', nameEnglish: 'Ash-Sharh', englishTranslation: 'The Relief', numberOfAyahs: 8, revelationType: 'Meccan' },
-  { number: 95, nameArabic: 'التين', nameEnglish: 'At-Tin', englishTranslation: 'The Fig', numberOfAyahs: 8, revelationType: 'Meccan' },
-  { number: 96, nameArabic: 'العلق', nameEnglish: 'Al-Alaq', englishTranslation: 'The Clot', numberOfAyahs: 19, revelationType: 'Meccan' },
-  { number: 97, nameArabic: 'القدر', nameEnglish: 'Al-Qadr', englishTranslation: 'The Power', numberOfAyahs: 5, revelationType: 'Meccan' },
-  { number: 98, nameArabic: 'البينة', nameEnglish: 'Al-Bayyinah', englishTranslation: 'The Clear Proof', numberOfAyahs: 8, revelationType: 'Medinan' },
-  { number: 99, nameArabic: 'الزلزلة', nameEnglish: 'Az-Zalzalah', englishTranslation: 'The Earthquake', numberOfAyahs: 8, revelationType: 'Medinan' },
-  { number: 100, nameArabic: 'العاديات', nameEnglish: 'Al-Adiyat', englishTranslation: 'The Courser', numberOfAyahs: 11, revelationType: 'Meccan' },
-  { number: 101, nameArabic: 'القارعة', nameEnglish: 'Al-Qari\'ah', englishTranslation: 'The Calamity', numberOfAyahs: 11, revelationType: 'Meccan' },
-  { number: 102, nameArabic: 'التكاثر', nameEnglish: 'At-Takathur', englishTranslation: 'The Rivalry in World Increase', numberOfAyahs: 8, revelationType: 'Meccan' },
-  { number: 103, nameArabic: 'العصر', nameEnglish: 'Al-Asr', englishTranslation: 'The Declining Day', numberOfAyahs: 3, revelationType: 'Meccan' },
-  { number: 104, nameArabic: 'الهمزة', nameEnglish: 'Al-Humazah', englishTranslation: 'The Traducer', numberOfAyahs: 9, revelationType: 'Meccan' },
-  { number: 105, nameArabic: 'الفيل', nameEnglish: 'Al-Fil', englishTranslation: 'The Elephant', numberOfAyahs: 5, revelationType: 'Meccan' },
-  { number: 106, nameArabic: 'قريش', nameEnglish: 'Quraysh', englishTranslation: 'Quraysh', numberOfAyahs: 4, revelationType: 'Meccan' },
-  { number: 107, nameArabic: 'الماعون', nameEnglish: 'Al-Ma\'un', englishTranslation: 'The Small Kindnesses', numberOfAyahs: 7, revelationType: 'Meccan' },
-  { number: 108, nameArabic: 'الكوثر', nameEnglish: 'Al-Kawthar', englishTranslation: 'The Abundance', numberOfAyahs: 3, revelationType: 'Meccan' },
-  { number: 109, nameArabic: 'الكافرون', nameEnglish: 'Al-Kafirun', englishTranslation: 'The Disbelievers', numberOfAyahs: 6, revelationType: 'Meccan' },
-  { number: 110, nameArabic: 'النصر', nameEnglish: 'An-Nasr', englishTranslation: 'The Divine Support', numberOfAyahs: 3, revelationType: 'Medinan' },
-  { number: 111, nameArabic: 'المسد', nameEnglish: 'Al-Masad', englishTranslation: 'The Palm Fiber', numberOfAyahs: 5, revelationType: 'Meccan' },
-  { number: 112, nameArabic: 'الإخلاص', nameEnglish: 'Al-Ikhlas', englishTranslation: 'The Sincerity', numberOfAyahs: 4, revelationType: 'Meccan' },
-  { number: 113, nameArabic: 'الفلق', nameEnglish: 'Al-Falaq', englishTranslation: 'The Daybreak', numberOfAyahs: 5, revelationType: 'Meccan' },
-  { number: 114, nameArabic: 'الناس', nameEnglish: 'An-Nas', englishTranslation: 'Mankind', numberOfAyahs: 6, revelationType: 'Meccan' }
+  { number: 1, nameArabic: 'الفاتحة', nameEnglish: 'Al-Fatihah', englishTranslation: 'The Opening', numberOfAyahs: 7, revelationType: 'Meccan', pageNumber: 1, juzNumber: 1 },
+  { number: 2, nameArabic: 'البقرة', nameEnglish: 'Al-Baqarah', englishTranslation: 'The Cow', numberOfAyahs: 286, revelationType: 'Medinan', pageNumber: 2, juzNumber: 1 },
+  { number: 3, nameArabic: 'آل عمران', nameEnglish: 'Aal-Imran', englishTranslation: 'The Family of Imran', numberOfAyahs: 200, revelationType: 'Medinan', pageNumber: 50, juzNumber: 3 },
+  { number: 4, nameArabic: 'النساء', nameEnglish: 'An-Nisa', englishTranslation: 'The Women', numberOfAyahs: 176, revelationType: 'Medinan', pageNumber: 77, juzNumber: 4 },
+  { number: 5, nameArabic: 'المائدة', nameEnglish: 'Al-Ma\'idah', englishTranslation: 'The Table Spread', numberOfAyahs: 120, revelationType: 'Medinan', pageNumber: 106, juzNumber: 6 },
+  { number: 6, nameArabic: 'الأنعام', nameEnglish: 'Al-An\'am', englishTranslation: 'The Cattle', numberOfAyahs: 165, revelationType: 'Meccan', pageNumber: 128, juzNumber: 7 },
+  { number: 7, nameArabic: 'الأعراف', nameEnglish: 'Al-A\'raf', englishTranslation: 'The Heights', numberOfAyahs: 206, revelationType: 'Meccan', pageNumber: 151, juzNumber: 8 },
+  { number: 8, nameArabic: 'الأنفال', nameEnglish: 'Al-Anfal', englishTranslation: 'The Spoils of War', numberOfAyahs: 75, revelationType: 'Medinan', pageNumber: 177, juzNumber: 9 },
+  { number: 9, nameArabic: 'التوبة', nameEnglish: 'At-Tawbah', englishTranslation: 'The Repentance', numberOfAyahs: 129, revelationType: 'Medinan', pageNumber: 187, juzNumber: 10 },
+  { number: 10, nameArabic: 'يونس', nameEnglish: 'Yunus', englishTranslation: 'Jonah', numberOfAyahs: 109, revelationType: 'Meccan', pageNumber: 208, juzNumber: 11 },
+  { number: 11, nameArabic: 'هود', nameEnglish: 'Hud', englishTranslation: 'Hud', numberOfAyahs: 123, revelationType: 'Meccan', pageNumber: 221, juzNumber: 11 },
+  { number: 12, nameArabic: 'يوسف', nameEnglish: 'Yusuf', englishTranslation: 'Joseph', numberOfAyahs: 111, revelationType: 'Meccan', pageNumber: 235, juzNumber: 12 },
+  { number: 13, nameArabic: 'الرعد', nameEnglish: 'Ar-Ra\'d', englishTranslation: 'The Thunder', numberOfAyahs: 43, revelationType: 'Medinan', pageNumber: 249, juzNumber: 13 },
+  { number: 14, nameArabic: 'إبراهيم', nameEnglish: 'Ibrahim', englishTranslation: 'Abraham', numberOfAyahs: 52, revelationType: 'Meccan', pageNumber: 255, juzNumber: 13 },
+  { number: 15, nameArabic: 'الحجر', nameEnglish: 'Al-Hijr', englishTranslation: 'The Rocky Tract', numberOfAyahs: 99, revelationType: 'Meccan', pageNumber: 262, juzNumber: 14 },
+  { number: 16, nameArabic: 'النحل', nameEnglish: 'An-Nahl', englishTranslation: 'The Bee', numberOfAyahs: 128, revelationType: 'Meccan', pageNumber: 267, juzNumber: 14 },
+  { number: 17, nameArabic: 'الإسراء', nameEnglish: 'Al-Isra', englishTranslation: 'The Night Journey', numberOfAyahs: 111, revelationType: 'Meccan', pageNumber: 282, juzNumber: 15 },
+  { number: 18, nameArabic: 'الكهف', nameEnglish: 'Al-Kahf', englishTranslation: 'The Cave', numberOfAyahs: 110, revelationType: 'Meccan', pageNumber: 293, juzNumber: 15 },
+  { number: 19, nameArabic: 'مريم', nameEnglish: 'Maryam', englishTranslation: 'Mary', numberOfAyahs: 98, revelationType: 'Meccan', pageNumber: 305, juzNumber: 16 },
+  { number: 20, nameArabic: 'طه', nameEnglish: 'Ta-Ha', englishTranslation: 'Ta-Ha', numberOfAyahs: 135, revelationType: 'Meccan', pageNumber: 312, juzNumber: 16 },
+  { number: 21, nameArabic: 'الأنبياء', nameEnglish: 'Al-Anbiya', englishTranslation: 'The Prophets', numberOfAyahs: 112, revelationType: 'Meccan', pageNumber: 322, juzNumber: 17 },
+  { number: 22, nameArabic: 'الحج', nameEnglish: 'Al-Hajj', englishTranslation: 'The Pilgrimage', numberOfAyahs: 78, revelationType: 'Medinan', pageNumber: 332, juzNumber: 17 },
+  { number: 23, nameArabic: 'المؤمنون', nameEnglish: 'Al-Mu\'minun', englishTranslation: 'The Believers', numberOfAyahs: 118, revelationType: 'Meccan', pageNumber: 342, juzNumber: 18 },
+  { number: 24, nameArabic: 'النور', nameEnglish: 'An-Nur', englishTranslation: 'The Light', numberOfAyahs: 64, revelationType: 'Medinan', pageNumber: 350, juzNumber: 18 },
+  { number: 25, nameArabic: 'الفرقان', nameEnglish: 'Al-Furqan', englishTranslation: 'The Criterion', numberOfAyahs: 77, revelationType: 'Meccan', pageNumber: 359, juzNumber: 18 },
+  { number: 26, nameArabic: 'الشعراء', nameEnglish: 'Ash-Shu\'ara', englishTranslation: 'The Poets', numberOfAyahs: 227, revelationType: 'Meccan', pageNumber: 367, juzNumber: 19 },
+  { number: 27, nameArabic: 'النمل', nameEnglish: 'An-Naml', englishTranslation: 'The Ant', numberOfAyahs: 93, revelationType: 'Meccan', pageNumber: 377, juzNumber: 19 },
+  { number: 28, nameArabic: 'القصص', nameEnglish: 'Al-Qasas', englishTranslation: 'The Stories', numberOfAyahs: 88, revelationType: 'Meccan', pageNumber: 385, juzNumber: 20 },
+  { number: 29, nameArabic: 'العنكبوت', nameEnglish: 'Al-Ankabut', englishTranslation: 'The Spider', numberOfAyahs: 69, revelationType: 'Meccan', pageNumber: 396, juzNumber: 20 },
+  { number: 30, nameArabic: 'الروم', nameEnglish: 'Ar-Rum', englishTranslation: 'The Romans', numberOfAyahs: 60, revelationType: 'Meccan', pageNumber: 404, juzNumber: 21 },
+  { number: 31, nameArabic: 'لقمان', nameEnglish: 'Luqman', englishTranslation: 'Luqman', numberOfAyahs: 34, revelationType: 'Meccan', pageNumber: 411, juzNumber: 21 },
+  { number: 32, nameArabic: 'السجدة', nameEnglish: 'As-Sajdah', englishTranslation: 'The Prostration', numberOfAyahs: 30, revelationType: 'Meccan', pageNumber: 415, juzNumber: 21 },
+  { number: 33, nameArabic: 'الأحزاب', nameEnglish: 'Al-Ahzab', englishTranslation: 'The Combined Forces', numberOfAyahs: 73, revelationType: 'Medinan', pageNumber: 418, juzNumber: 21 },
+  { number: 34, nameArabic: 'سبأ', nameEnglish: 'Saba', englishTranslation: 'Sheba', numberOfAyahs: 54, revelationType: 'Meccan', pageNumber: 428, juzNumber: 22 },
+  { number: 35, nameArabic: 'فاطر', nameEnglish: 'Fatir', englishTranslation: 'The Originator', numberOfAyahs: 45, revelationType: 'Meccan', pageNumber: 434, juzNumber: 22 },
+  { number: 36, nameArabic: 'يس', nameEnglish: 'Ya-Sin', englishTranslation: 'Ya-Seen', numberOfAyahs: 83, revelationType: 'Meccan', pageNumber: 440, juzNumber: 22 },
+  { number: 37, nameArabic: 'الصافات', nameEnglish: 'As-Saffat', englishTranslation: 'Those who set the Ranks', numberOfAyahs: 182, revelationType: 'Meccan', pageNumber: 446, juzNumber: 23 },
+  { number: 38, nameArabic: 'ص', nameEnglish: 'Sad', englishTranslation: 'The Letter Sad', numberOfAyahs: 88, revelationType: 'Meccan', pageNumber: 453, juzNumber: 23 },
+  { number: 39, nameArabic: 'الزمر', nameEnglish: 'Az-Zumar', englishTranslation: 'The Troops', numberOfAyahs: 75, revelationType: 'Meccan', pageNumber: 458, juzNumber: 23 },
+  { number: 40, nameArabic: 'غافر', nameEnglish: 'Ghafir', englishTranslation: 'The Forgiver', numberOfAyahs: 85, revelationType: 'Meccan', pageNumber: 467, juzNumber: 24 },
+  { number: 41, nameArabic: 'فصلت', nameEnglish: 'Fussilat', englishTranslation: 'Explained in Detail', numberOfAyahs: 54, revelationType: 'Meccan', pageNumber: 477, juzNumber: 24 },
+  { number: 42, nameArabic: 'الشورى', nameEnglish: 'Ash-Shura', englishTranslation: 'The Consultation', numberOfAyahs: 53, revelationType: 'Meccan', pageNumber: 483, juzNumber: 25 },
+  { number: 43, nameArabic: 'الزخرف', nameEnglish: 'Az-Zukhruf', englishTranslation: 'The Ornaments of Gold', numberOfAyahs: 89, revelationType: 'Meccan', pageNumber: 489, juzNumber: 25 },
+  { number: 44, nameArabic: 'الدخان', nameEnglish: 'Ad-Dukhan', englishTranslation: 'The Smoke', numberOfAyahs: 59, revelationType: 'Meccan', pageNumber: 496, juzNumber: 25 },
+  { number: 45, nameArabic: 'الجاثية', nameEnglish: 'Al-Jathiyah', englishTranslation: 'The Crouching', numberOfAyahs: 37, revelationType: 'Meccan', pageNumber: 499, juzNumber: 25 },
+  { number: 46, nameArabic: 'الأحقاف', nameEnglish: 'Al-Ahqaf', englishTranslation: 'The Wind-Curved Sandhills', numberOfAyahs: 35, revelationType: 'Meccan', pageNumber: 502, juzNumber: 26 },
+  { number: 47, nameArabic: 'محمد', nameEnglish: 'Muhammad', englishTranslation: 'Muhammad', numberOfAyahs: 38, revelationType: 'Medinan', pageNumber: 507, juzNumber: 26 },
+  { number: 48, nameArabic: 'الفتح', nameEnglish: 'Al-Fath', englishTranslation: 'The Victory', numberOfAyahs: 29, revelationType: 'Medinan', pageNumber: 511, juzNumber: 26 },
+  { number: 49, nameArabic: 'الحجرات', nameEnglish: 'Al-Hujurat', englishTranslation: 'The Rooms', numberOfAyahs: 18, revelationType: 'Medinan', pageNumber: 515, juzNumber: 26 },
+  { number: 50, nameArabic: 'ق', nameEnglish: 'Qaf', englishTranslation: 'The Letter Qaf', numberOfAyahs: 45, revelationType: 'Meccan', pageNumber: 518, juzNumber: 26 },
+  { number: 51, nameArabic: 'الذاريات', nameEnglish: 'Adh-Dhariyat', englishTranslation: 'The Winnowing Winds', numberOfAyahs: 60, revelationType: 'Meccan', pageNumber: 520, juzNumber: 26 },
+  { number: 52, nameArabic: 'الطور', nameEnglish: 'At-Tur', englishTranslation: 'The Mount', numberOfAyahs: 49, revelationType: 'Meccan', pageNumber: 523, juzNumber: 27 },
+  { number: 53, nameArabic: 'النجم', nameEnglish: 'An-Najm', englishTranslation: 'The Star', numberOfAyahs: 62, revelationType: 'Meccan', pageNumber: 526, juzNumber: 27 },
+  { number: 54, nameArabic: 'القمر', nameEnglish: 'Al-Qamar', englishTranslation: 'The Moon', numberOfAyahs: 55, revelationType: 'Meccan', pageNumber: 528, juzNumber: 27 },
+  { number: 55, nameArabic: 'الرحمن', nameEnglish: 'Ar-Rahman', englishTranslation: 'The Beneficent', numberOfAyahs: 78, revelationType: 'Medinan', pageNumber: 531, juzNumber: 27 },
+  { number: 56, nameArabic: 'الواقعة', nameEnglish: 'Al-Waqi\'ah', englishTranslation: 'The Inevitable', numberOfAyahs: 96, revelationType: 'Meccan', pageNumber: 534, juzNumber: 27 },
+  { number: 57, nameArabic: 'الحديد', nameEnglish: 'Al-Hadid', englishTranslation: 'The Iron', numberOfAyahs: 29, revelationType: 'Medinan', pageNumber: 537, juzNumber: 27 },
+  { number: 58, nameArabic: 'المجادلة', nameEnglish: 'Al-Mujadila', englishTranslation: 'The Pleading Woman', numberOfAyahs: 22, revelationType: 'Medinan', pageNumber: 542, juzNumber: 28 },
+  { number: 59, nameArabic: 'الحشر', nameEnglish: 'Al-Hashr', englishTranslation: 'The Exile', numberOfAyahs: 24, revelationType: 'Medinan', pageNumber: 545, juzNumber: 28 },
+  { number: 60, nameArabic: 'الممتحنة', nameEnglish: 'Al-Mumtahanah', englishTranslation: 'She that is to be examined', numberOfAyahs: 13, revelationType: 'Medinan', pageNumber: 549, juzNumber: 28 },
+  { number: 61, nameArabic: 'الصف', nameEnglish: 'As-Saff', englishTranslation: 'The Ranks', numberOfAyahs: 14, revelationType: 'Medinan', pageNumber: 551, juzNumber: 28 },
+  { number: 62, nameArabic: 'الجمعة', nameEnglish: 'Al-Jumu\'ah', englishTranslation: 'The Congregation', numberOfAyahs: 11, revelationType: 'Medinan', pageNumber: 553, juzNumber: 28 },
+  { number: 63, nameArabic: 'المنافقون', nameEnglish: 'Al-Munafiqun', englishTranslation: 'The Hypocrites', numberOfAyahs: 11, revelationType: 'Medinan', pageNumber: 554, juzNumber: 28 },
+  { number: 64, nameArabic: 'التغابن', nameEnglish: 'At-Taghabun', englishTranslation: 'The Mutual Disillusion', numberOfAyahs: 18, revelationType: 'Medinan', pageNumber: 556, juzNumber: 28 },
+  { number: 65, nameArabic: 'الطلاق', nameEnglish: 'At-Talaq', englishTranslation: 'The Divorce', numberOfAyahs: 12, revelationType: 'Medinan', pageNumber: 558, juzNumber: 28 },
+  { number: 66, nameArabic: 'التحريم', nameEnglish: 'At-Tahrim', englishTranslation: 'The Prohibition', numberOfAyahs: 12, revelationType: 'Medinan', pageNumber: 560, juzNumber: 28 },
+  { number: 67, nameArabic: 'الملك', nameEnglish: 'Al-Mulk', englishTranslation: 'The Sovereignty', numberOfAyahs: 30, revelationType: 'Meccan', pageNumber: 562, juzNumber: 29 },
+  { number: 68, nameArabic: 'القلم', nameEnglish: 'Al-Qalam', englishTranslation: 'The Pen', numberOfAyahs: 52, revelationType: 'Meccan', pageNumber: 564, juzNumber: 29 },
+  { number: 69, nameArabic: 'الحاقة', nameEnglish: 'Al-Haqqah', englishTranslation: 'The Inevitable', numberOfAyahs: 52, revelationType: 'Meccan', pageNumber: 566, juzNumber: 29 },
+  { number: 70, nameArabic: 'المعارج', nameEnglish: 'Al-Ma\'arij', englishTranslation: 'The Ascending Stairways', numberOfAyahs: 44, revelationType: 'Meccan', pageNumber: 568, juzNumber: 29 },
+  { number: 71, nameArabic: 'نوح', nameEnglish: 'Nuh', englishTranslation: 'Noah', numberOfAyahs: 28, revelationType: 'Meccan', pageNumber: 570, juzNumber: 29 },
+  { number: 72, nameArabic: 'الجن', nameEnglish: 'Al-Jinn', englishTranslation: 'The Jinn', numberOfAyahs: 28, revelationType: 'Meccan', pageNumber: 572, juzNumber: 29 },
+  { number: 73, nameArabic: 'المزمل', nameEnglish: 'Al-Muzzammil', englishTranslation: 'The Enshrouded One', numberOfAyahs: 20, revelationType: 'Meccan', pageNumber: 574, juzNumber: 29 },
+  { number: 74, nameArabic: 'المدثر', nameEnglish: 'Al-Muddaththir', englishTranslation: 'The Cloaked One', numberOfAyahs: 56, revelationType: 'Meccan', pageNumber: 575, juzNumber: 29 },
+  { number: 75, nameArabic: 'القيامة', nameEnglish: 'Al-Qiyamah', englishTranslation: 'The Resurrection', numberOfAyahs: 40, revelationType: 'Meccan', pageNumber: 577, juzNumber: 29 },
+  { number: 76, nameArabic: 'الإنسان', nameEnglish: 'Al-Insan', englishTranslation: 'The Human', numberOfAyahs: 31, revelationType: 'Medinan', pageNumber: 578, juzNumber: 29 },
+  { number: 77, nameArabic: 'المرسلات', nameEnglish: 'Al-Mursalat', englishTranslation: 'The Emissaries', numberOfAyahs: 50, revelationType: 'Meccan', pageNumber: 580, juzNumber: 29 },
+  { number: 78, nameArabic: 'النبأ', nameEnglish: 'An-Naba', englishTranslation: 'The Tidings', numberOfAyahs: 40, revelationType: 'Meccan', pageNumber: 582, juzNumber: 30 },
+  { number: 79, nameArabic: 'النازعات', nameEnglish: 'An-Nazi\'at', englishTranslation: 'Those who drag forth', numberOfAyahs: 46, revelationType: 'Meccan', pageNumber: 583, juzNumber: 30 },
+  { number: 80, nameArabic: 'عبس', nameEnglish: 'Abasa', englishTranslation: 'He Frowned', numberOfAyahs: 42, revelationType: 'Meccan', pageNumber: 585, juzNumber: 30 },
+  { number: 81, nameArabic: 'التكوير', nameEnglish: 'At-Takwir', englishTranslation: 'The Overthrowing', numberOfAyahs: 29, revelationType: 'Meccan', pageNumber: 586, juzNumber: 30 },
+  { number: 82, nameArabic: 'الانفطار', nameEnglish: 'Al-Infitar', englishTranslation: 'The Cleaving', numberOfAyahs: 19, revelationType: 'Meccan', pageNumber: 587, juzNumber: 30 },
+  { number: 83, nameArabic: 'المطففين', nameEnglish: 'Al-Mutaffifin', englishTranslation: 'The Defrauding', numberOfAyahs: 36, revelationType: 'Meccan', pageNumber: 587, juzNumber: 30 },
+  { number: 84, nameArabic: 'الانشقاق', nameEnglish: 'Al-Inshiqaq', englishTranslation: 'The Splitting Open', numberOfAyahs: 25, revelationType: 'Meccan', pageNumber: 589, juzNumber: 30 },
+  { number: 85, nameArabic: 'البروج', nameEnglish: 'Al-Buruj', englishTranslation: 'The Mansions of the Stars', numberOfAyahs: 22, revelationType: 'Meccan', pageNumber: 590, juzNumber: 30 },
+  { number: 86, nameArabic: 'الطارق', nameEnglish: 'At-Tariq', englishTranslation: 'The Nightcomer', numberOfAyahs: 17, revelationType: 'Meccan', pageNumber: 591, juzNumber: 30 },
+  { number: 87, nameArabic: 'الأعلى', nameEnglish: 'Al-A\'la', englishTranslation: 'The Most High', numberOfAyahs: 19, revelationType: 'Meccan', pageNumber: 591, juzNumber: 30 },
+  { number: 88, nameArabic: 'الغاشية', nameEnglish: 'Al-Ghashiyah', englishTranslation: 'The Overwhelming', numberOfAyahs: 26, revelationType: 'Meccan', pageNumber: 592, juzNumber: 30 },
+  { number: 89, nameArabic: 'الفجر', nameEnglish: 'Al-Fajr', englishTranslation: 'The Dawn', numberOfAyahs: 30, revelationType: 'Meccan', pageNumber: 593, juzNumber: 30 },
+  { number: 90, nameArabic: 'البلد', nameEnglish: 'Al-Balad', englishTranslation: 'The City', numberOfAyahs: 20, revelationType: 'Meccan', pageNumber: 594, juzNumber: 30 },
+  { number: 91, nameArabic: 'الشمس', nameEnglish: 'Ash-Shams', englishTranslation: 'The Sun', numberOfAyahs: 15, revelationType: 'Meccan', pageNumber: 595, juzNumber: 30 },
+  { number: 92, nameArabic: 'الليل', nameEnglish: 'Al-Layl', englishTranslation: 'The Night', numberOfAyahs: 21, revelationType: 'Meccan', pageNumber: 595, juzNumber: 30 },
+  { number: 93, nameArabic: 'الضحى', nameEnglish: 'Ad-Duha', englishTranslation: 'The Morning Hours', numberOfAyahs: 11, revelationType: 'Meccan', pageNumber: 596, juzNumber: 30 },
+  { number: 94, nameArabic: 'الشرح', nameEnglish: 'Ash-Sharh', englishTranslation: 'The Relief', numberOfAyahs: 8, revelationType: 'Meccan', pageNumber: 596, juzNumber: 30 },
+  { number: 95, nameArabic: 'التين', nameEnglish: 'At-Tin', englishTranslation: 'The Fig', numberOfAyahs: 8, revelationType: 'Meccan', pageNumber: 597, juzNumber: 30 },
+  { number: 96, nameArabic: 'العلق', nameEnglish: 'Al-Alaq', englishTranslation: 'The Clot', numberOfAyahs: 19, revelationType: 'Meccan', pageNumber: 597, juzNumber: 30 },
+  { number: 97, nameArabic: 'القدر', nameEnglish: 'Al-Qadr', englishTranslation: 'The Power', numberOfAyahs: 5, revelationType: 'Meccan', pageNumber: 598, juzNumber: 30 },
+  { number: 98, nameArabic: 'البينة', nameEnglish: 'Al-Bayyinah', englishTranslation: 'The Clear Proof', numberOfAyahs: 8, revelationType: 'Medinan', pageNumber: 598, juzNumber: 30 },
+  { number: 99, nameArabic: 'الزلزلة', nameEnglish: 'Az-Zalzalah', englishTranslation: 'The Earthquake', numberOfAyahs: 8, revelationType: 'Medinan', pageNumber: 599, juzNumber: 30 },
+  { number: 100, nameArabic: 'العاديات', nameEnglish: 'Al-Adiyat', englishTranslation: 'The Courser', numberOfAyahs: 11, revelationType: 'Meccan', pageNumber: 599, juzNumber: 30 },
+  { number: 101, nameArabic: 'القارعة', nameEnglish: 'Al-Qari\'ah', englishTranslation: 'The Calamity', numberOfAyahs: 11, revelationType: 'Meccan', pageNumber: 600, juzNumber: 30 },
+  { number: 102, nameArabic: 'التكاثر', nameEnglish: 'At-Takathur', englishTranslation: 'The Rivalry in World Increase', numberOfAyahs: 8, revelationType: 'Meccan', pageNumber: 600, juzNumber: 30 },
+  { number: 103, nameArabic: 'العصر', nameEnglish: 'Al-Asr', englishTranslation: 'The Declining Day', numberOfAyahs: 3, revelationType: 'Meccan', pageNumber: 601, juzNumber: 30 },
+  { number: 104, nameArabic: 'الهمزة', nameEnglish: 'Al-Humazah', englishTranslation: 'The Traducer', numberOfAyahs: 9, revelationType: 'Meccan', pageNumber: 601, juzNumber: 30 },
+  { number: 105, nameArabic: 'الفيل', nameEnglish: 'Al-Fil', englishTranslation: 'The Elephant', numberOfAyahs: 5, revelationType: 'Meccan', pageNumber: 601, juzNumber: 30 },
+  { number: 106, nameArabic: 'قريش', nameEnglish: 'Quraysh', englishTranslation: 'Quraysh', numberOfAyahs: 4, revelationType: 'Meccan', pageNumber: 602, juzNumber: 30 },
+  { number: 107, nameArabic: 'الماعون', nameEnglish: 'Al-Ma\'un', englishTranslation: 'The Small Kindnesses', numberOfAyahs: 7, revelationType: 'Meccan', pageNumber: 602, juzNumber: 30 },
+  { number: 108, nameArabic: 'الكوثر', nameEnglish: 'Al-Kawthar', englishTranslation: 'The Abundance', numberOfAyahs: 3, revelationType: 'Meccan', pageNumber: 602, juzNumber: 30 },
+  { number: 109, nameArabic: 'الكافرون', nameEnglish: 'Al-Kafirun', englishTranslation: 'The Disbelievers', numberOfAyahs: 6, revelationType: 'Meccan', pageNumber: 603, juzNumber: 30 },
+  { number: 110, nameArabic: 'النصر', nameEnglish: 'An-Nasr', englishTranslation: 'The Divine Support', numberOfAyahs: 3, revelationType: 'Medinan', pageNumber: 603, juzNumber: 30 },
+  { number: 111, nameArabic: 'المسد', nameEnglish: 'Al-Masad', englishTranslation: 'The Palm Fiber', numberOfAyahs: 5, revelationType: 'Meccan', pageNumber: 603, juzNumber: 30 },
+  { number: 112, nameArabic: 'الإخلاص', nameEnglish: 'Al-Ikhlas', englishTranslation: 'The Sincerity', numberOfAyahs: 4, revelationType: 'Meccan', pageNumber: 604, juzNumber: 30 },
+  { number: 113, nameArabic: 'الفلق', nameEnglish: 'Al-Falaq', englishTranslation: 'The Daybreak', numberOfAyahs: 5, revelationType: 'Meccan', pageNumber: 604, juzNumber: 30 },
+  { number: 114, nameArabic: 'الناس', nameEnglish: 'An-Nas', englishTranslation: 'Mankind', numberOfAyahs: 6, revelationType: 'Meccan', pageNumber: 604, juzNumber: 30 }
 ];
 
 export const sampleSurahAyahs: Record<number, Ayah[]> = {
@@ -286,3 +374,76 @@ export function getSurahAyahs(surahNumber: number): Ayah[] {
 
   return ayahs;
 }
+
+/**
+ * 604-Page Madani Mushaf Utilities
+ */
+export function getPageImageUrl(pageNumber: number): string {
+  const safePage = Math.min(604, Math.max(1, pageNumber));
+  const padded = String(safePage).padStart(3, '0');
+  return `https://files.quran.app/hafs/madani/width_1024/page${padded}.png`;
+}
+
+export interface PageMetaInfo {
+  pageNumber: number;
+  juzNumber: number;
+  juzName: string;
+  juzNameArabic: string;
+  juz: {
+    juzNumber: number;
+    juzNameArabic: string;
+  };
+  hizbNumber: number;
+  primarySurah: SurahMeta;
+  surahsOnPage: SurahMeta[];
+}
+
+export function getPageMeta(pageNumber: number): PageMetaInfo {
+  const safePage = Math.min(604, Math.max(1, pageNumber || 1));
+
+  // Determine Juz
+  let juzNumber = 1;
+  for (let i = juzStartPages.length - 1; i >= 0; i--) {
+    if (safePage >= juzStartPages[i]) {
+      juzNumber = i + 1;
+      break;
+    }
+  }
+  const juzName = juzNamesArabic[juzNumber - 1] || `الجزء ${juzNumber}`;
+  const hizbNumber = Math.min(60, Math.max(1, (juzNumber - 1) * 2 + (safePage % 20 > 10 ? 2 : 1)));
+
+  // Determine Surahs on or spanning this page
+  // A surah is on this page if its pageNumber === safePage, or if it started before and ends after
+  const surahsStartingOnPage = surahsList.filter(s => s.pageNumber === safePage);
+  
+  // If no surah starts on this page, find the nearest surah before this page
+  let primarySurah = surahsStartingOnPage[0];
+  if (!primarySurah) {
+    for (let i = surahsList.length - 1; i >= 0; i--) {
+      if ((surahsList[i].pageNumber || 1) <= safePage) {
+        primarySurah = surahsList[i];
+        break;
+      }
+    }
+  }
+  if (!primarySurah) {
+    primarySurah = surahsList[0];
+  }
+
+  const surahsOnPage = surahsStartingOnPage.length > 0 ? surahsStartingOnPage : [primarySurah];
+
+  return {
+    pageNumber: safePage,
+    juzNumber,
+    juzName,
+    juzNameArabic: juzName,
+    juz: {
+      juzNumber,
+      juzNameArabic: juzName
+    },
+    hizbNumber,
+    primarySurah,
+    surahsOnPage
+  };
+}
+
