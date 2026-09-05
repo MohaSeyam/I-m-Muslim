@@ -53,19 +53,100 @@ export function saveCachedPageAyahs(pageNumber: number, ayahs: PageAyahExtended[
   }
 }
 
+// Pre-bundled local Quran pages storage
+let localPagesDataPromise: Promise<Record<string, PageAyahExtended[]>> | null = null;
+let localPagesMap: Record<string, PageAyahExtended[]> | null = null;
+
+/**
+ * Loads pre-bundled authentic Holy Quran text and Tafsir directly from local app bundle.
+ * Ensures 0ms loading time without requiring external network downloads.
+ */
+export async function loadBundledQuranPages(): Promise<Record<string, PageAyahExtended[]>> {
+  if (localPagesMap && Object.keys(localPagesMap).length > 0) {
+    return localPagesMap;
+  }
+  if (!localPagesDataPromise) {
+    localPagesDataPromise = fetch('/data/quran_pages.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Local bundled quran_pages.json HTTP status ' + res.status);
+        return res.json();
+      })
+      .then(data => {
+        localPagesMap = data;
+        return data;
+      })
+      .catch(err => {
+        console.warn('Could not load pre-bundled Quran data:', err);
+        return {};
+      });
+  }
+  return localPagesDataPromise;
+}
+
+// Preload bundled data immediately in background on app start
+if (typeof window !== 'undefined') {
+  loadBundledQuranPages();
+}
+
+/**
+ * Synchronously returns bundled page ayahs if already in memory
+ */
+export function getBundledPageAyahsSync(pageNumber: number): { ayahs: PageAyahExtended[]; surahsOnPage: { number: number; nameArabic: string }[] } | null {
+  const safePage = Math.min(604, Math.max(1, pageNumber));
+  if (localPagesMap && localPagesMap[String(safePage)] && localPagesMap[String(safePage)].length > 0) {
+    const ayahs = localPagesMap[String(safePage)];
+    const surahSet = new Map<number, string>();
+    ayahs.forEach(a => {
+      if (a.surahNumber && a.surahNameArabic) {
+        surahSet.set(a.surahNumber, a.surahNameArabic);
+      }
+    });
+    return {
+      ayahs,
+      surahsOnPage: Array.from(surahSet.entries()).map(([num, name]) => ({ number: num, nameArabic: name }))
+    };
+  }
+  return null;
+}
+
 /**
  * Loads complete text for a given Mushaf Page (1 to 604) in authentic Uthmani script with official Tafseer Al-Muyassar.
- * 1. Checks local persistent cache first (instant 0ms response)
- * 2. Fetches authentic King Fahd Complex Uthmani text & Tafseer Al-Muyassar from official API
- * 3. Secondary network fallback to Quran.com v4 endpoint
- * 4. Falls back gracefully to built-in verified offline surahs
+ * 1. Checks pre-bundled Holy Quran pages (0ms instant response, pre-loaded in app)
+ * 2. Checks local persistent cache
+ * 3. Fetches authentic King Fahd Complex Uthmani text & Tafseer Al-Muyassar if fallback needed
  */
 export async function fetchPageAyahs(
   pageNumber: number
 ): Promise<{ ayahs: PageAyahExtended[]; surahsOnPage: { number: number; nameArabic: string }[] }> {
   const safePage = Math.min(604, Math.max(1, pageNumber));
 
-  // 1. Check local persistent cache first (instant 0ms response)
+  // 1. Check synchronous bundled memory first
+  const syncMatch = getBundledPageAyahsSync(safePage);
+  if (syncMatch && syncMatch.ayahs.length > 0) {
+    return syncMatch;
+  }
+
+  // 2. Check bundled local pages promise (instant local file loading)
+  try {
+    const bundledPages = await loadBundledQuranPages();
+    const bundledAyahs = bundledPages[String(safePage)];
+    if (bundledAyahs && bundledAyahs.length > 0) {
+      const surahSet = new Map<number, string>();
+      bundledAyahs.forEach(a => {
+        if (a.surahNumber && a.surahNameArabic) {
+          surahSet.set(a.surahNumber, a.surahNameArabic);
+        }
+      });
+      return {
+        ayahs: bundledAyahs,
+        surahsOnPage: Array.from(surahSet.entries()).map(([num, name]) => ({ number: num, nameArabic: name }))
+      };
+    }
+  } catch (err) {
+    console.warn('Bundled pages check fallback', err);
+  }
+
+  // 3. Check local persistent cache
   const cached = getCachedPageAyahs(safePage);
   if (cached && cached.length > 0) {
     const surahSet = new Map<number, string>();

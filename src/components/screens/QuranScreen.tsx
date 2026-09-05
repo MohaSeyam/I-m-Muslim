@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { surahsList, juzData, toArabicNumerals, getPageMeta, PageMetaInfo } from '../../data/quranData';
-import { fetchPageAyahs, preloadAdjacentPages, PageAyahExtended } from '../../utils/quranService';
+import { fetchPageAyahs, preloadAdjacentPages, PageAyahExtended, getBundledPageAyahsSync } from '../../utils/quranService';
 import {
   getQuranLastReadPage,
   saveQuranLastReadPage,
@@ -118,9 +118,15 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
     setSliderPageValue(currentPage);
   }, [currentPage]);
 
-  // Ayahs on page
-  const [pageAyahs, setPageAyahs] = useState<PageAyahExtended[]>([]);
-  const [isLoadingAyahs, setIsLoadingAyahs] = useState<boolean>(true);
+  // Ayahs on page (pre-loaded without waiting for downloads)
+  const [pageAyahs, setPageAyahs] = useState<PageAyahExtended[]>(() => {
+    const syncRes = getBundledPageAyahsSync(currentPage);
+    return syncRes ? syncRes.ayahs : [];
+  });
+  const [isLoadingAyahs, setIsLoadingAyahs] = useState<boolean>(() => {
+    const syncRes = getBundledPageAyahsSync(currentPage);
+    return !syncRes;
+  });
   const [selectedAyah, setSelectedAyah] = useState<PageAyahExtended | null>(null);
 
   // Toast notification
@@ -147,15 +153,22 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
     recordQuranPageRead(currentPage);
 
     let isMounted = true;
-    setIsLoadingAyahs(true);
     setSelectedAyah(null);
 
-    fetchPageAyahs(currentPage).then(res => {
-      if (isMounted) {
-        setPageAyahs(res.ayahs);
-        setIsLoadingAyahs(false);
-      }
-    });
+    // 1. Immediate sync response if already loaded into memory
+    const syncRes = getBundledPageAyahsSync(currentPage);
+    if (syncRes && syncRes.ayahs.length > 0) {
+      setPageAyahs(syncRes.ayahs);
+      setIsLoadingAyahs(false);
+    } else {
+      setIsLoadingAyahs(true);
+      fetchPageAyahs(currentPage).then(res => {
+        if (isMounted) {
+          setPageAyahs(res.ayahs);
+          setIsLoadingAyahs(false);
+        }
+      });
+    }
 
     preloadAdjacentPages(currentPage);
 

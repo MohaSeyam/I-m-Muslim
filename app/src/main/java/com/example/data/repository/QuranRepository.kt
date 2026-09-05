@@ -1,12 +1,20 @@
 package com.example.data.repository
 
+import android.content.Context
+import android.util.Log
 import com.example.data.model.Ayah
 import com.example.data.model.Reciter
 import com.example.data.model.Surah
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 
-class QuranRepository {
+class QuranRepository(private val context: Context? = null) {
+
+    private val surahsCache = ConcurrentHashMap<Int, List<Ayah>>()
+    private var rootJsonObject: JSONObject? = null
+    private var allAyahsCache: List<Ayah>? = null
 
     val reciters = listOf(
         Reciter(
@@ -162,11 +170,59 @@ class QuranRepository {
         return surahs.find { it.number == number }
     }
 
-    suspend fun getAyahsForSurah(surahNumber: Int, reciterId: String = "alafasy"): List<Ayah> = withContext(Dispatchers.Default) {
+    @Synchronized
+    private fun getRootJson(): JSONObject? {
+        if (rootJsonObject != null) return rootJsonObject
+        val c = context ?: return null
+        return try {
+            val stream = c.assets.open("quran_surahs.json")
+            val text = stream.bufferedReader().use { it.readText() }
+            rootJsonObject = JSONObject(text)
+            rootJsonObject
+        } catch (e: Exception) {
+            Log.e("QuranRepository", "Error loading bundled quran_surahs.json", e)
+            null
+        }
+    }
+
+    private fun loadSurahFromAssets(surahNumber: Int): List<Ayah> {
+        val root = getRootJson() ?: return emptyList()
+        val surahObj = root.optJSONObject(surahNumber.toString()) ?: return emptyList()
+        val ayahsArray = surahObj.optJSONArray("ayahs") ?: return emptyList()
+        val list = ArrayList<Ayah>(ayahsArray.length())
+        for (i in 0 until ayahsArray.length()) {
+            val a = ayahsArray.getJSONObject(i)
+            list.add(
+                Ayah(
+                    numberInQuran = a.optInt("number"),
+                    surahNumber = surahNumber,
+                    numberInSurah = a.optInt("numberInSurah"),
+                    textArabic = a.optString("textArabic"),
+                    textEnglish = a.optString("textEnglish"),
+                    tafsirMuyassar = a.optString("tafseer"),
+                    page = a.optInt("page", 1),
+                    juz = a.optInt("juz", 1)
+                )
+            )
+        }
+        return list
+    }
+
+    suspend fun getAyahsForSurah(surahNumber: Int, reciterId: String = "alafasy"): List<Ayah> = withContext(Dispatchers.IO) {
+        val cached = surahsCache[surahNumber]
+        val rawAyahs = if (cached != null && cached.isNotEmpty()) {
+            cached
+        } else {
+            val loaded = loadSurahFromAssets(surahNumber)
+            if (loaded.isNotEmpty()) {
+                surahsCache[surahNumber] = loaded
+                loaded
+            } else {
+                QuranStaticData.getAyahsForSurah(surahNumber)
+            }
+        }
+
         val reciter = reciters.find { it.id == reciterId } ?: reciters.first()
-        val surah = getSurahByNumber(surahNumber) ?: return@withContext emptyList()
-        val rawAyahs = QuranStaticData.getAyahsForSurah(surahNumber)
-        
         rawAyahs.map { item ->
             val formattedSurah = String.format("%03d", surahNumber)
             val formattedAyah = String.format("%03d", item.numberInSurah)
@@ -179,9 +235,46 @@ class QuranRepository {
         return QuranStaticData.ayahOfTheDay
     }
 
+    private fun normalizeArabic(text: String): String {
+        return text
+            .replace(Regex("[\\u064B-\\u065F\\u0670]"), "")
+            .replace(Regex("[إأآاٱ]"), "ا")
+            .replace("ة", "ه")
+            .replace("ى", "ي")
+            .trim()
+    }
+
     fun searchQuran(query: String): List<Ayah> {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return QuranStaticData.famousAyahs
+
+        val all = getAllAyahs()
+        if (all.isNotEmpty()) {
+            val normQuery = normalizeArabic(trimmed).lowercase()
+            val matches = all.filter {
+                normalizeArabic(it.textArabic).contains(normQuery, ignoreCase = true) ||
+                it.textEnglish.contains(query, ignoreCase = true) ||
+                normalizeArabic(it.tafsirMuyassar).contains(normQuery, ignoreCase = true)
+            }.distinctBy { "${it.surahNumber}:${it.numberInSurah}" }
+            if (matches.isNotEmpty()) return matches
+        }
+
         return QuranStaticData.search(trimmed)
+    }
+
+    private fun getAllAyahs(): List<Ayah> {
+        if (allAyahsCache != null) return allAyahsCache!!
+        val list = ArrayList<Ayah>(6236)
+        for (s in 1..114) {
+            val loaded = surahsCache[s] ?: loadSurahFromAssets(s)
+            if (loaded.isNotEmpty()) {
+                surahsCache[s] = loaded
+                list.addAll(loaded)
+            }
+        }
+        if (list.isNotEmpty()) {
+            allAyahsCache = list
+        }
+        return list
     }
 }

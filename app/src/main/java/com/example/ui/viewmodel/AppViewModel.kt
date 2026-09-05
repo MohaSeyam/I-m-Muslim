@@ -50,7 +50,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getDatabase(application)
     val userDataRepository = UserDataRepository(db)
-    val quranRepository = QuranRepository()
+    val quranRepository = QuranRepository(application)
     val dhikrRepository = DhikrRepository()
     val prayerRepository = PrayerRepository()
     val duaRepository = DuaRepository()

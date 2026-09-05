@@ -1,5 +1,6 @@
 import { surahsList, juzData, toArabicNumerals } from '../data/quranData';
 import { offlineSurahDatabase } from '../data/quranOfflineData';
+import { loadBundledQuranPages } from './quranService';
 
 export interface QuranAyahSearchResult {
   surahNumber: number;
@@ -79,40 +80,46 @@ export async function searchAyahsInQuran(
 
   const results: QuranAyahSearchResult[] = [];
   const seenKeys = new Set<string>();
-
-  // 1. Instant client-side search in offline database
   const normalizedQ = normalizeArabic(trimmed);
-  try {
-    for (const [surahNumStr, ayahs] of Object.entries(offlineSurahDatabase)) {
-      const surahNum = Number(surahNumStr);
-      const surahMeta = surahsList.find(s => s.number === surahNum);
-      if (!surahMeta || !Array.isArray(ayahs)) continue;
 
-      for (const ayah of ayahs) {
-        const normText = normalizeArabic(ayah.textArabic || '');
-        if (normText.includes(normalizedQ)) {
-          const key = `${surahNum}:${ayah.numberInSurah}`;
-          if (!seenKeys.has(key)) {
-            seenKeys.add(key);
-            const page = ayah.pageNumber || estimatePageForAyah(surahNum, ayah.numberInSurah);
-            results.push({
-              surahNumber: surahNum,
-              surahNameArabic: surahMeta.nameArabic,
-              ayahNumberInSurah: ayah.numberInSurah,
-              ayahNumberOverall: ayah.number || 0,
-              textArabic: ayah.textArabic,
-              pageNumber: page,
-              juzNumber: ayah.juzNumber
-            });
+  // 1. Instant client-side search across all 604 pre-bundled Quran pages (offline, 0ms)
+  try {
+    const bundledPages = await loadBundledQuranPages();
+    if (bundledPages && Object.keys(bundledPages).length > 0) {
+      for (const [pageStr, pageAyahs] of Object.entries(bundledPages)) {
+        if (!Array.isArray(pageAyahs)) continue;
+        const pageNum = Number(pageStr);
+        for (const ayah of pageAyahs) {
+          const normText = normalizeArabic(ayah.textArabic || '');
+          if (normText.includes(normalizedQ)) {
+            const key = `${ayah.surahNumber || 1}:${ayah.numberInSurah}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              results.push({
+                surahNumber: ayah.surahNumber || 1,
+                surahNameArabic: ayah.surahNameArabic || '',
+                ayahNumberInSurah: ayah.numberInSurah,
+                ayahNumberOverall: ayah.number || 0,
+                textArabic: ayah.textArabic,
+                pageNumber: ayah.pageNumber || pageNum,
+                juzNumber: ayah.juzNumber
+              });
+            }
           }
         }
       }
     }
   } catch (err) {
-    console.warn('Offline ayah search check:', err);
+    console.warn('Bundled pages search error:', err);
   }
 
-  // 2. Fetch full Quran search from alquran.cloud if online
+  // If bundled results found, cache and return immediately without any network wait!
+  if (results.length > 0) {
+    searchCache.set(cacheKey, results);
+    return results;
+  }
+
+  // 2. Fallback client-side search in offlineSurahDatabase
   try {
     const encoded = encodeURIComponent(trimmed);
     const res = await fetch(`https://api.alquran.cloud/v1/search/${encoded}/all/quran-simple-clean`, {
