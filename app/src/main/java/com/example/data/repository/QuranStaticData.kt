@@ -181,13 +181,60 @@ object QuranStaticData {
         }
     }
 
+    val famousAyahs = listOf(
+        ayahOfTheDay,
+        Ayah(159, 2, 152, "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ", "So remember Me; I will remember you. And be grateful to Me and do not deny Me.", "فاذكروني بطاعتي ودعائي أذكركم بالثواب والمغفرة، واشكروا نعمتي ولا تكفروا بها.", 23),
+        Ayah(160, 2, 153, "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ۚ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", "O you who have believed, seek help through patience and prayer. Indeed, Allah is with the patient.", "يا معشر المؤمنين اطلبوا العون من الله في كل أموركم بالصبر والصلاة، إن الله مع الصابرين بعونه وتوفيقه.", 24),
+        Ayah(193, 2, 186, "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ ۖ فَلْيَسْتَجِيبُوا لِي وَلْيُؤْمِنُوا بِي لَعَلَّهُمْ يَرْشُدُونَ", "And when My servants ask you concerning Me, indeed I am near. I respond to the invocation of the supplicant when he calls upon Me.", "وإذا سألك عبادي عني فإني قريب منهم، أجيب دعاء الداعي إذا دعاني، فليطيعوني وليؤمنوا بي ليرشدوا إلى الحق.", 28),
+        Ayah(292, 2, 285, "آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ ۚ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ", "The Messenger has believed in what was revealed to him from his Lord, and [so have] the believers.", "صدق الرسول محمد صلى الله عليه وسلم بما أُنزل إليه من ربه، والمؤمنون كذلك كل آمن بالله وملائكته وكتبه ورسله.", 49),
+        Ayah(293, 2, 286, "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ ۗ رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا", "Allah does not charge a soul except [with that within] its capacity. It will have [the consequence of] what [good] it has gained.", "لا يكلف الله نفساً إلا ما تطيقه، لها ثواب ما كسبت من الخير، وعليها وزر ما اكتسبت من الشر.", 49),
+        Ayah(426, 3, 133, "وَسَارِعُوا إِلَىٰ مَغْفِرَةٍ مِّن رَّبِّكُمْ وَجَنَّةٍ عَرْضُهَا السَّمَاوَاتُ وَالْأَرْضُ أُعِدَّتْ لِلْمُتَّقِينَ", "And hasten to forgiveness from your Lord and a garden as wide as the heavens and earth, prepared for the righteous.", "وبادروا وسارعوا بأعمالكم الصالحة إلى نيل مغفرة من ربكم وجنة واسعة أعدها الله للمتقين.", 67),
+        Ayah(427, 3, 134, "الَّذِينَ يُنفِقُونَ فِي السَّرَّاءِ وَالضَّرَّاءِ وَالْكَاظِمِينَ الْغَيْظَ وَالْعَافِينَ عَنِ النَّاسِ ۗ وَاللَّهُ يُحِبُّ الْمُحْسِنِينَ", "Who spend [in the cause of Allah] during ease and hardship and who restrain anger and who pardon the people - and Allah loves the doers of good.", "الذين يبذلون أموالهم في سبيل الله في حال الرخاء والشدة، والكاظمين غيظهم والعافين عمن أساء إليهم، والله يحب المحسنين.", 67),
+        Ayah(1735, 13, 28, "الَّذِينَ آمَنُوا وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ اللَّهِ ۗ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", "Those who have believed and whose hearts are assured by the remembrance of Allah. Unquestionably, by the remembrance of Allah hearts are assured.", "الذين آمنوا بالله واستقرت قلوبهم بذكره وعبادته، ألا بذكر الله تسكن القلوب وتطمئن النفوس وتنشرح الصدور.", 252),
+        Ayah(2052, 17, 23, "وَقَضَىٰ رَبُّكَ أَلَّا تَعْبُدُوا إِلَّا إِيَّاهُ وَبِالْوَالِدَيْنِ إِحْسَانًا ۚ إِمَّا يَبْلُغَنَّ عِندَكَ الْكِبَرَ أَحَدُهُمَا أَوْ كِلَاهُمَا فَلَا تَقُل لَّهُمَا أُفٍّ وَلَا تَنْهَرْهُمَا وَقُل لَّهُمَا قَوْلًا كَرِيمًا", "And your Lord has decreed that you not worship except Him, and to parents, good treatment.", "وأمر ربك وألزم ألا تعبدوا أحداً إلا هو وحده، وأوصى بالإحسان إلى الوالدين وخفض الجناح لهما والقول الطيب الكريم.", 284),
+        Ayah(2053, 17, 24, "وَاخْفِضْ لَهُمَا جَنَاحَ الذُّلِّ مِنَ الرَّحْمَةِ وَقُل رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا", "And lower to them the wing of humility out of mercy and say, 'My Lord, have mercy upon them as they brought me up [when I was] small.'", "وتواضع لهما رقة ورحمة بهما، وادع لهما بالرحمة قائلاً: رب ارحمهما كما تعبا في تربيتي ورعايتي صغيراً.", 284),
+        Ayah(2847, 24, 35, "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ ۚ مَثَلُ نُورِهِ كَمِشْكَاةٍ فِيهَا مِصْبَاحٌ ۖ الْمِصْبَاحُ فِي زُجَاجَةٍ", "Allah is the Light of the heavens and the earth. The example of His light is like a niche within which is a lamp.", "الله تعالى منور السماوات والأرض بالهداية والآيات، ومثل نوره في قلب المؤمن ككوة فيها قنديل مضيء ساطع.", 354),
+        Ayah(4111, 39, 53, "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ", "Say, 'O My servants who have transgressed against themselves, do not despair of the mercy of Allah. Indeed, Allah forgives all sins.'", "قل يا محمد لعبادي الذين تجاوزوا الحد في المعاصي: لا تيأسوا من رحمة الله ومغفرته، إن الله يغفر الذنوب جميعاً للتائبين.", 464),
+        Ayah(4920, 55, 1, "الرَّحْمَٰنُ", "The Entirely Merciful", "الله الرحمن وسعت رحمته كل شيء في الدنيا والآخرة.", 531),
+        Ayah(4921, 55, 2, "عَلَّمَ الْقُرْآنَ", "Taught the Quran,", "علم الإنسان القرآن ويسر تلاوته وفهمه.", 531),
+        Ayah(4922, 55, 3, "خَلَقَ الْإِنسَانَ", "Created man,", "أوجد الإنسان وأبدع خلقه في أحسن تقويم.", 531),
+        Ayah(4923, 55, 4, "عَلَّمَهُ الْبَيَانَ", "Taught him eloquence.", "علمه النطق والتعبير والإبانة عما في نفسه.", 531),
+        Ayah(4975, 56, 1, "إِذَا وَقَعَتِ الْوَاقِعَةُ", "When the Occurrence occurs,", "إذا قامت القيامة ونفخ في الصور.", 534),
+        Ayah(4976, 56, 2, "لَيْسَ لِوَقْعَتِهَا كَاذِبَةٌ", "There is, at its occurrence, no denial.", "ليس لقيامها نفس تكذب أو ترد ما قدر الله.", 534),
+        Ayah(5147, 59, 21, "لَوْ أَنزَلْنَا هَٰذَا الْقُرْآنَ عَلَىٰ جَبَلٍ لَّرَأَيْتَهُ خَاشِعًا مُّتَصَدِّعًا مِّنْ خَشْيَةِ اللَّهِ", "If We had sent down this Quran upon a mountain, you would have seen it humbled and coming apart from fear of Allah.", "لو أنزلنا هذا القرآن على جبل أصم وتدبره لرأيته يتشقق من هيبة الله وعظمته.", 548),
+        Ayah(5148, 59, 22, "هُوَ اللَّهُ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ ۖ عَالِمُ الْغَيْبِ وَالشَّهَادَةِ ۖ هُوَ الرَّحْمَٰنُ الرَّحِيمُ", "He is Allah, other than whom there is no deity, Knower of the unseen and the witnessed. He is the Entirely Merciful, the Especially Merciful.", "هو الله وحده لا شريك له، يعلم السر والعلانية وما كان وما سيكون، الرحمن الرحيم بعباده.", 548),
+        Ayah(6120, 95, 1, "وَالتِّينِ وَالزَّيْتُونِ", "By the fig and the olive", "أقسم الله بالتين والزيتون لما فيهما من البركة والمنافع.", 597),
+        Ayah(6121, 95, 2, "وَطُورِ سِينِينَ", "And [by] Mount Sinai", "وجبل الطور الذي كلم الله عليه موسى تكليماً.", 597),
+        Ayah(6122, 95, 3, "وَهَٰذَا الْبَلَدِ الْأَمِينِ", "And [by] this secure city [Makkah],", "ومكة المكرمة البلد الحرام الآمن لمن دخله.", 597),
+        Ayah(6123, 95, 4, "لَقَدْ خَلَقْنَا الْإِنسَانَ فِي أَحْسَنِ تَقْوِيمٍ", "We have certainly created man in the best of stature;", "لقد خلقنا الإنسان في أعدل صورة وأجمل هيئة وكمال.", 597),
+        Ayah(6184, 105, 1, "أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَابِ الْفِيلِ", "Have you not considered how your Lord dealt with the companions of the elephant?", "ألم تعلم يا محمد كيف أهلك الله أبرهة وجيشه أصحاب الفيل دفاعاً عن بيته الحرام؟", 601),
+        Ayah(6189, 106, 1, "لِإِيلَافِ قُرَيْشٍ", "For the accustomed security of the Quraysh -", "لأجل اعتياد قريش وألفتهم رحلتهم الآمنة في التجارة.", 602),
+        Ayah(6190, 106, 2, "إِيلَافِهِمْ رِحْلَةَ الشِّتَاءِ وَالصَّيْفِ", "Their accustomed security [in] the caravan of winter and summer -", "رحلة الشتاء إلى اليمن ورحلة الصيف إلى الشام في أمن ورزق.", 602),
+        Ayah(6191, 106, 3, "فَلْيَعْبُدُوا رَبَّ هَٰذَا الْبَيْتِ", "Let them worship the Lord of this House,", "فليعبدوا الله وحده رب الكعبة المشرفة شكراً على نعمه.", 602),
+        Ayah(6192, 106, 4, "الَّذِي أَطْعَمَهُم مِّن جُوعٍ وَآمَنَهُم مِّنْ خَوْفٍ", "Who has fed them, [saving them] from hunger and made them safe, [saving them] from fear.", "الذي رزقهم الطعام ودفع عنهم الجوع وأمنهم في حرمهم.", 602),
+        Ayah(6193, 107, 1, "أَرَأَيْتَ الَّذِي يُكَذِّبُ بِالدِّينِ", "Have you seen the one who denies the Recompense?", "هل رأيت حال من يكذب بالجزاء والحساب في الآخرة؟", 602),
+        Ayah(6199, 107, 7, "وَيَمْنَعُونَ الْمَاعُونَ", "And withhold [simple] assistance.", "ويمتنعون عن إعارة ما لا ضرر في إعارته وبذل المعونة للمحتاجين.", 602)
+    )
+
+    private fun normalizeArabic(text: String): String {
+        return text
+            .replace(Regex("[\\u064B-\\u065F\\u0670]"), "")
+            .replace(Regex("[إأآاٱ]"), "ا")
+            .replace("ة", "ه")
+            .replace("ى", "ي")
+            .trim()
+    }
+
     fun search(query: String): List<Ayah> {
+        val normQuery = normalizeArabic(query).lowercase()
         val allStatic = fatihahAyahs + baqarahOpening + kahfOpening + yasinOpening + mulkOpening +
                 duhaAyahs + sharhAyahs + qadrAyahs + asrAyahs + kawtharAyahs + kafirunAyahs +
-                nasrAyahs + masadAyahs + ikhlasAyahs + falaqAyahs + nasAyahs
+                nasrAyahs + masadAyahs + ikhlasAyahs + falaqAyahs + nasAyahs + famousAyahs
         return allStatic.filter {
-            it.textArabic.contains(query) || it.textEnglish.contains(query, ignoreCase = true) || it.tafsirMuyassar.contains(query)
-        }
+            normalizeArabic(it.textArabic).contains(normQuery, ignoreCase = true) ||
+            it.textEnglish.contains(query, ignoreCase = true) ||
+            normalizeArabic(it.tafsirMuyassar).contains(normQuery, ignoreCase = true)
+        }.distinctBy { "${it.surahNumber}:${it.numberInSurah}" }
     }
 }
 

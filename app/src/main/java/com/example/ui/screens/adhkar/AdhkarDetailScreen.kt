@@ -52,6 +52,7 @@ fun AdhkarDetailScreen(
     val currentIndex by viewModel.currentDhikrIndex.collectAsState()
     val currentProgressCount by viewModel.dhikrItemProgressCount.collectAsState()
     val completedDhikrIds by viewModel.completedDhikrIds.collectAsState()
+    val dhikrCompletionSound by viewModel.dhikrCompletionSound.collectAsState()
 
     var fontSizeDelta by remember { mutableStateOf(0) }
     var vibrationEnabled by remember { mutableStateOf(true) }
@@ -82,6 +83,13 @@ fun AdhkarDetailScreen(
                 subtitle = if (items.isNotEmpty()) "الذكر ${currentIndex + 1} من ${items.size}" else null,
                 onBackClick = onBackClick,
                 actions = {
+                    IconButton(onClick = { viewModel.toggleDhikrCompletionSound() }) {
+                        Icon(
+                            if (dhikrCompletionSound) Icons.Outlined.VolumeUp else Icons.Outlined.VolumeOff,
+                            contentDescription = if (dhikrCompletionSound) "صوت الإنجاز مفعّل" else "صوت الإنجاز مكتوم",
+                            tint = if (dhikrCompletionSound) SageTeal else MaterialTheme.colorScheme.error
+                        )
+                    }
                     IconButton(onClick = { vibrationEnabled = !vibrationEnabled }) {
                         Icon(
                             if (vibrationEnabled) Icons.Outlined.Vibration else Icons.Outlined.PhoneAndroid,

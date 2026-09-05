@@ -35,6 +35,8 @@ fun SettingsScreen(
     val themeMode by viewModel.themeMode.collectAsState()
     val currentReciter by viewModel.selectedReciter.collectAsState()
     val showTranslation by viewModel.showTranslation.collectAsState()
+    val dhikrCompletionSound by viewModel.dhikrCompletionSound.collectAsState()
+    val soundEffectsEnabled by viewModel.soundEffectsEnabled.collectAsState()
 
     var showAboutDialog by remember { mutableStateOf(false) }
 
@@ -103,6 +105,105 @@ fun SettingsScreen(
                                 Text(currentReciter.nameArabic, style = MaterialTheme.typography.bodySmall, color = SageTeal)
                             }
                             Icon(Icons.Default.RecordVoiceOver, contentDescription = null, tint = SageTeal)
+                        }
+                    }
+                }
+            }
+
+            // Sound and Dhikr Completion Preferences (Mute feature requested by user)
+            item {
+                Text(
+                    text = "الأصوات والتفاعل",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        // Dhikr completion sound toggle (mute/unmute)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "صوت إتمام وإنجاز الذكر",
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    if (!dhikrCompletionSound) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.errorContainer,
+                                            shape = RoundedCornerShape(6.dp)
+                                        ) {
+                                            Text(
+                                                "مكتوم",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    "تشغيل نغمة هادئة عند اكتمال عدد تكرارات الذكر أو التسبيح (يمكنك كتمها)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = dhikrCompletionSound,
+                                onCheckedChange = { viewModel.setDhikrCompletionSound(it) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = SageTeal,
+                                    checkedTrackColor = SageTeal.copy(alpha = 0.5f)
+                                ),
+                                modifier = Modifier.testTag("dhikr_completion_sound_switch")
+                            )
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
+
+                        // Bead click tap sound
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                Text(
+                                    "صوت نقر العداد والمسبحة",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    "صوت تكتكة خافتة مع كل لمسة أثناء التسبيح",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = soundEffectsEnabled,
+                                onCheckedChange = { viewModel.setSoundEffectsEnabled(it) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = SageTeal,
+                                    checkedTrackColor = SageTeal.copy(alpha = 0.5f)
+                                ),
+                                modifier = Modifier.testTag("sound_effects_switch")
+                            )
                         }
                     }
                 }

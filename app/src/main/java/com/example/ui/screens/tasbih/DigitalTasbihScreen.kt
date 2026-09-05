@@ -45,6 +45,7 @@ fun DigitalTasbihScreen(
     val count by viewModel.tasbihCount.collectAsState()
     val target by viewModel.tasbihTarget.collectAsState()
     val phrase by viewModel.tasbihPhrase.collectAsState()
+    val dhikrCompletionSound by viewModel.dhikrCompletionSound.collectAsState()
 
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -81,6 +82,13 @@ fun DigitalTasbihScreen(
                 subtitle = "تسبيح وذكر الله في كل حين",
                 onBackClick = onBackClick,
                 actions = {
+                    IconButton(onClick = { viewModel.toggleDhikrCompletionSound() }) {
+                        Icon(
+                            if (dhikrCompletionSound) Icons.Outlined.VolumeUp else Icons.Outlined.VolumeOff,
+                            contentDescription = if (dhikrCompletionSound) "صوت الإنجاز مفعّل" else "صوت الإنجاز مكتوم",
+                            tint = if (dhikrCompletionSound) SageTeal else MaterialTheme.colorScheme.error
+                        )
+                    }
                     IconButton(onClick = { viewModel.resetTasbih() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "تصفير العداد", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

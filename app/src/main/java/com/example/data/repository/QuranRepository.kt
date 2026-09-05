@@ -181,7 +181,7 @@ class QuranRepository {
 
     fun searchQuran(query: String): List<Ayah> {
         val trimmed = query.trim()
-        if (trimmed.isEmpty()) return emptyList()
+        if (trimmed.isEmpty()) return QuranStaticData.famousAyahs
         return QuranStaticData.search(trimmed)
     }
 }

@@ -20,7 +20,11 @@ export interface AppSettings {
   // Sound & Haptics & Feedback
   hapticFeedback: boolean;
   soundEffects: boolean;
+  dhikrCompletionSound: boolean;
   autoAdvanceAdhkar?: boolean;
+
+  // Hijri Calendar Adjustment (-2, -1, 0, +1, +2 days)
+  hijriAdjustment: number;
 }
 
 const SETTINGS_STORAGE_KEY = 'ana_muslim_user_settings_v4';
@@ -43,7 +47,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
   hapticFeedback: true,
   soundEffects: true,
-  autoAdvanceAdhkar: true
+  dhikrCompletionSound: true,
+  autoAdvanceAdhkar: true,
+
+  hijriAdjustment: 0
 };
 
 export function getStoredSettings(): AppSettings {

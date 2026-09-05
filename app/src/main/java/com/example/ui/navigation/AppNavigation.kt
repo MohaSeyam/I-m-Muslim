@@ -1,8 +1,10 @@
 package com.example.ui.navigation
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -68,11 +70,13 @@ fun AppNavigation(viewModel: AppViewModel) {
     val showBottomBar = currentRoute in listOf("home", "quran", "adhkar", "prayer", "settings")
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
                     tonalElevation = 6.dp,
+                    windowInsets = NavigationBarDefaults.windowInsets,
                     modifier = Modifier.testTag("bottom_nav_bar")
                 ) {
                     bottomNavItems.forEach { item ->

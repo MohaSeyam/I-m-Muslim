@@ -40,10 +40,13 @@ const hijriMonthsEn = [
   'Dhu al-Hijjah'
 ];
 
-export function getHijriDate(date: Date = new Date(), dayAdjustment: number = 0): HijriDateInfo {
+import { getStoredSettings } from './settingsStorage';
+
+export function getHijriDate(date: Date = new Date(), dayAdjustment?: number): HijriDateInfo {
+  const effectiveAdjustment = typeof dayAdjustment === 'number' ? dayAdjustment : (getStoredSettings()?.hijriAdjustment ?? 0);
   const adjustedDate = new Date(date);
-  if (dayAdjustment !== 0) {
-    adjustedDate.setDate(adjustedDate.getDate() + dayAdjustment);
+  if (effectiveAdjustment !== 0) {
+    adjustedDate.setDate(adjustedDate.getDate() + effectiveAdjustment);
   }
 
   try {

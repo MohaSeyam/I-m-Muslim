@@ -5,6 +5,7 @@
  */
 
 import { surahsList } from '../data/quranData';
+import { getStoredSettings } from './settingsStorage';
 
 export interface ReciterOption {
   id: string;
@@ -207,6 +208,11 @@ class IslamicAudioService {
    */
   playBeadClick(): void {
     try {
+      if (typeof window !== 'undefined') {
+        const settings = getStoredSettings();
+        if (settings && settings.soundEffects === false) return;
+      }
+
       const ctx = this.getAudioContext();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -240,6 +246,21 @@ class IslamicAudioService {
   }
 
   playTaqbeel(): void {
+    this.playDhikrCompletion();
+  }
+
+  /**
+   * Play completion chime upon finishing dhikr or tasbih target,
+   * strictly respecting the user's sound mute settings.
+   */
+  playDhikrCompletion(force: boolean = false): void {
+    if (!force && typeof window !== 'undefined') {
+      const settings = getStoredSettings();
+      // If user muted completion sound or all sound effects, do not play
+      if (settings && (settings.soundEffects === false || settings.dhikrCompletionSound === false)) {
+        return;
+      }
+    }
     this.playCompletionChime();
   }
 

@@ -363,26 +363,23 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
     if (pinchTriggeredRef.current) {
       pinchTriggeredRef.current = false;
       initialPinchDistRef.current = null;
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
       return;
     }
 
-    // Double tap handling to toggle fullscreen
-    const now = Date.now();
-    if (now - lastTapTimeRef.current < 280) {
-      onToggleFullscreen?.();
-      if (typeof navigator !== 'undefined' && navigator.vibrate) try { navigator.vibrate(20); } catch {}
-      lastTapTimeRef.current = 0;
-      return;
-    }
-    lastTapTimeRef.current = now;
-
-    // Horizontal swipe threshold
-    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
-    if (e.changedTouches.length > 0) {
+    // Horizontal swipe check
+    if (touchStartXRef.current !== null && touchStartYRef.current !== null && e.changedTouches.length > 0) {
       const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
       const diffY = e.changedTouches[0].clientY - touchStartYRef.current;
 
+      // Clean swipe threshold
       if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+        // A swipe occurred -> immediately reset lastTapTime to prevent triggering double-tap
+        lastTapTimeRef.current = 0;
+        touchStartXRef.current = null;
+        touchStartYRef.current = null;
+
         if (diffX < 0) {
           // Swiped Right-to-Left -> go to PREVIOUS page
           goToPrevPage();
@@ -390,8 +387,11 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
           // Swiped Left-to-Right -> go to NEXT page
           goToNextPage();
         }
+        return;
       }
     }
+
+    // Single touch ended with minimal movement (tap)
     touchStartXRef.current = null;
     touchStartYRef.current = null;
   };
@@ -517,21 +517,55 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
         <div className="absolute bottom-2.5 right-2.5 w-5 h-5 border-b-2 border-r-2 border-coolgreen-600/40 dark:border-emerald-400/30 rounded-br-lg pointer-events-none" />
         <div className="absolute bottom-2.5 left-2.5 w-5 h-5 border-b-2 border-l-2 border-coolgreen-600/40 dark:border-emerald-400/30 rounded-bl-lg pointer-events-none" />
 
-        {/* Ribbon Bookmark Indicator Tag */}
-        {isCurrentPageBookmarked && (
-          <div className="absolute top-0 right-7 z-20 w-6 h-10 bg-emerald-600 text-white flex flex-col items-center justify-start shadow-md shadow-emerald-900/40 rounded-b-sm animate-fadeIn">
-            <Bookmark className="w-3.5 h-3.5 fill-white mt-1" />
+        {/* Ribbon Bookmark Indicator Tag (Hanging Silk Ribbon) */}
+        {(isCurrentPageBookmarked || bookmarksList.some(b => b.pageNumber === currentPage)) && (
+          <div 
+            onClick={toggleBookmark}
+            className="absolute top-0 right-7 z-30 w-7 sm:w-8 h-12 sm:h-14 bg-gradient-to-b from-amber-600 via-amber-700 to-amber-900 text-white flex flex-col items-center justify-start shadow-lg shadow-black/25 cursor-pointer group transition-transform hover:translate-y-1 animate-fadeIn"
+            style={{
+              clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%)'
+            }}
+            title="فاصل القراءة مثبت في هذه الصفحة (اضغط للإزالة أو التعديل)"
+          >
+            <Bookmark className="w-4 h-4 fill-amber-300 text-amber-200 mt-1.5 drop-shadow-xs" />
           </div>
         )}
 
-        {/* Top Quranic Page Header (Inside Mushaf Frame - Surah & Juz) */}
-        <div className="px-4 sm:px-6 py-2 border-b border-coolgreen-600/15 dark:border-white/10 flex items-center justify-between text-xs font-bold select-none bg-emerald-500/5 dark:bg-white/[0.02] flex-shrink-0">
-          <span className="font-display text-coolgreen-950 dark:text-emerald-300 text-xs sm:text-sm font-extrabold flex items-center gap-1">
-            سُورَةُ {pageMeta.primarySurah.nameArabic}
-          </span>
-          <span className="font-sans text-coolgreen-800 dark:text-slate-300 text-[11px] sm:text-xs font-medium">
-            {pageMeta.juzName || pageMeta.juz?.juzNameArabic || `الجزء ${pageMeta.juzNumber || 1}`}
-          </span>
+        {/* Top Quranic Page Header (Inside Mushaf Frame - Surah, Bookmark & Juz) */}
+        <div className="px-3 sm:px-6 py-1.5 sm:py-2 border-b border-coolgreen-600/15 dark:border-white/10 flex items-center justify-between text-xs font-bold select-none bg-emerald-500/5 dark:bg-white/[0.02] flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="font-display text-coolgreen-950 dark:text-emerald-300 text-xs sm:text-sm font-extrabold flex items-center gap-1">
+              سُورَةُ {pageMeta.primarySurah.nameArabic}
+            </span>
+            <button
+              onClick={toggleBookmark}
+              className={`p-1 px-2 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer border ${
+                isCurrentPageBookmarked
+                  ? 'bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-500/40 shadow-2xs'
+                  : 'bg-black/5 dark:bg-white/5 text-gray-600 dark:text-slate-300 border-transparent hover:border-coolgreen-600/20'
+              }`}
+              title={isCurrentPageBookmarked ? 'تم تثبيت الفاصل في هذه الصفحة (اضغط للإزالة)' : 'حفظ فاصل في هذه الصفحة'}
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${isCurrentPageBookmarked ? 'fill-amber-500 text-amber-600 dark:text-amber-400' : 'text-gray-400'}`} />
+              <span>{isCurrentPageBookmarked ? 'فاصل محفوظ' : 'تثبيت فاصل'}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {bookmarkedPage && bookmarkedPage !== currentPage && (
+              <button
+                onClick={() => setCurrentPage(bookmarkedPage)}
+                className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25 px-2 py-0.5 rounded-lg border border-emerald-500/30 transition cursor-pointer flex items-center gap-1"
+                title={`الانتقال إلى موضع الفاصل المحفوظ (صفحة ${toArabicNumerals(bookmarkedPage)})`}
+              >
+                <Bookmark className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+                <span>الفاصل: ص {toArabicNumerals(bookmarkedPage)}</span>
+              </button>
+            )}
+            <span className="font-sans text-coolgreen-800 dark:text-slate-300 text-[11px] sm:text-xs font-medium">
+              {pageMeta.juzName || pageMeta.juz?.juzNameArabic || `الجزء ${pageMeta.juzNumber || 1}`}
+            </span>
+          </div>
         </div>
 
         {/* Page Content Container */}
@@ -597,8 +631,11 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
                           title={`آية ${toArabicNumerals(ayah.numberInSurah)} • اضغط مطولاً للتفسير والمشاركة وحفظ الفاصل`}
                         >
                           {ayah.textArabic}
-                          <span className="quran-ayah-badge text-emerald-700 dark:text-emerald-400 font-bold select-none mx-0.5">
-                            ۝{toArabicNumerals(ayah.numberInSurah)}
+                          <span className="quran-ayah-badge text-emerald-700 dark:text-emerald-400 font-bold select-none mx-0.5 inline-flex items-center gap-0.5">
+                            {isBookmarkedAyah && (
+                              <Bookmark className="w-3 h-3 fill-amber-500 text-amber-600 dark:text-amber-400 inline" />
+                            )}
+                            <span>۝{toArabicNumerals(ayah.numberInSurah)}</span>
                           </span>
                         </span>
                       );

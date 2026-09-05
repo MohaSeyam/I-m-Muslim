@@ -111,7 +111,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _quranSearchQuery = MutableStateFlow("")
     val quranSearchQuery: StateFlow<String> = _quranSearchQuery.asStateFlow()
 
-    private val _quranSearchResults = MutableStateFlow<List<Ayah>>(emptyList())
+    private val _quranSearchResults = MutableStateFlow<List<Ayah>>(quranRepository.searchQuran(""))
     val quranSearchResults: StateFlow<List<Ayah>> = _quranSearchResults.asStateFlow()
 
     // Dhikr State
@@ -209,6 +209,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedReciter = MutableStateFlow(reciters.first())
     val selectedReciter: StateFlow<Reciter> = _selectedReciter.asStateFlow()
 
+    // Sound and Dhikr Completion Sound Settings (Mute toggle requested by user)
+    private val _dhikrCompletionSound = MutableStateFlow(true)
+    val dhikrCompletionSound: StateFlow<Boolean> = _dhikrCompletionSound.asStateFlow()
+
+    private val _soundEffectsEnabled = MutableStateFlow(true)
+    val soundEffectsEnabled: StateFlow<Boolean> = _soundEffectsEnabled.asStateFlow()
+
+    fun setDhikrCompletionSound(enabled: Boolean) {
+        _dhikrCompletionSound.value = enabled
+    }
+
+    fun toggleDhikrCompletionSound() {
+        _dhikrCompletionSound.value = !_dhikrCompletionSound.value
+    }
+
+    fun setSoundEffectsEnabled(enabled: Boolean) {
+        _soundEffectsEnabled.value = enabled
+    }
+
+    fun toggleSoundEffectsEnabled() {
+        _soundEffectsEnabled.value = !_soundEffectsEnabled.value
+    }
+
     val audioState: StateFlow<PlaybackState> = audioPlayerManager.playbackState
 
     init {
@@ -305,12 +328,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (newCount >= currentItem.countTarget) {
             _dhikrItemProgressCount.value = currentItem.countTarget
             _completedDhikrIds.value = _completedDhikrIds.value + currentItem.id
+            if (_dhikrCompletionSound.value && _soundEffectsEnabled.value) {
+                audioPlayerManager.playDhikrCompletionTone()
+            }
             if (currentIndex + 1 < items.size) {
                 _currentDhikrIndex.value = currentIndex + 1
                 _dhikrItemProgressCount.value = _dhikrSessionCounts.value[items[currentIndex + 1].id] ?: 0
             }
         } else {
             _dhikrItemProgressCount.value = newCount
+            if (_soundEffectsEnabled.value) {
+                audioPlayerManager.playBeadClick()
+            }
         }
     }
 
@@ -325,6 +354,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
             if (newCount >= item.countTarget) {
                 _completedDhikrIds.value = _completedDhikrIds.value + item.id
+                if (_dhikrCompletionSound.value && _soundEffectsEnabled.value) {
+                    audioPlayerManager.playDhikrCompletionTone()
+                }
+            } else {
+                if (_soundEffectsEnabled.value) {
+                    audioPlayerManager.playBeadClick()
+                }
             }
         }
     }
@@ -364,7 +400,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun incrementTasbih() {
-        _tasbihCount.value = _tasbihCount.value + 1
+        val next = _tasbihCount.value + 1
+        _tasbihCount.value = next
+        if (next >= _tasbihTarget.value) {
+            if (_dhikrCompletionSound.value && _soundEffectsEnabled.value) {
+                audioPlayerManager.playDhikrCompletionTone()
+            }
+        } else {
+            if (_soundEffectsEnabled.value) {
+                audioPlayerManager.playBeadClick()
+            }
+        }
     }
 
     fun resetTasbih() {

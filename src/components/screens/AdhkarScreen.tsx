@@ -13,8 +13,6 @@ import {
   ChevronRight,
   ArrowRight,
   CheckCircle2,
-  Volume2,
-  VolumeX,
   Search,
   Sun,
   Moon,
@@ -35,7 +33,8 @@ import {
   Shirt,
   DoorOpen,
   Home,
-  UserCheck
+  UserCheck,
+  Volume2
 } from 'lucide-react';
 
 interface AdhkarScreenProps {
@@ -250,7 +249,6 @@ export const AdhkarScreen: React.FC<AdhkarScreenProps> = ({ initialCategoryId, o
     }
   });
 
-  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedDhikrForShare, setSelectedDhikrForShare] = useState<DhikrItem | null>(null);
 
@@ -338,12 +336,16 @@ export const AdhkarScreen: React.FC<AdhkarScreenProps> = ({ initialCategoryId, o
     // Audio click
     islamicAudio.playClick();
 
-    // Haptic feedback & auto-advance on completion
+    // Sound effect on reaching count target (respects settings)
+    if (next === item.countTarget) {
+      islamicAudio.playDhikrCompletion();
+    }
+
+    // Haptic feedback
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try {
         if (next === item.countTarget) {
           navigator.vibrate([40, 80, 40]);
-          islamicAudio.playTaqbeel();
         } else {
           navigator.vibrate(20);
         }
@@ -405,31 +407,6 @@ export const AdhkarScreen: React.FC<AdhkarScreenProps> = ({ initialCategoryId, o
     }
   };
 
-  // Speech synthesis
-  const toggleSpeech = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      showToast('القراءة الصوتية غير مدعومة في هذا المتصفح');
-      return;
-    }
-
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ar-SA';
-    utterance.rate = 0.85;
-
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
-    setIsSpeaking(true);
-  };
-
   // Calculate statistics for selected category
   const categoryStats = useMemo(() => {
     if (!selectedCategory) return { completed: 0, total: 0, percentage: 0 };
@@ -440,18 +417,33 @@ export const AdhkarScreen: React.FC<AdhkarScreenProps> = ({ initialCategoryId, o
   }, [selectedCategory, itemCounts]);
 
   // Swipe handlers for next/previous dhikr in focus mode
+  // User directive: Left-to-Right swipe moves to NEXT dhikr, Right-to-Left swipe moves to PREVIOUS dhikr
   const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+    if (e.touches.length > 0) {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    }
   };
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0 && activeDhikrIndex < currentCategoryItems.length - 1) {
-        // swipe left -> next
+    if (e.changedTouches.length === 0) return;
+    const diffX = touchStartX.current - e.changedTouches[0].clientX;
+    const diffY = touchStartY.current - e.changedTouches[0].clientY;
+
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+      // Swiped Left-to-Right (finger moves from left to right, diffX < 0) -> Move to NEXT dhikr
+      if (diffX < 0 && activeDhikrIndex < currentCategoryItems.length - 1) {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          try { navigator.vibrate(15); } catch {}
+        }
         setActiveDhikrIndex(prev => prev + 1);
-      } else if (diff < 0 && activeDhikrIndex > 0) {
-        // swipe right -> prev
+      }
+      // Swiped Right-to-Left (finger moves from right to left, diffX > 0) -> Move to PREVIOUS dhikr
+      else if (diffX > 0 && activeDhikrIndex > 0) {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          try { navigator.vibrate(15); } catch {}
+        }
         setActiveDhikrIndex(prev => prev - 1);
       }
     }
@@ -713,18 +705,6 @@ export const AdhkarScreen: React.FC<AdhkarScreenProps> = ({ initialCategoryId, o
 
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => toggleSpeech(activeItem.textArabic)}
-                      className={`p-1.5 rounded-xl transition cursor-pointer ${
-                        isSpeaking
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-100 dark:bg-[#182030] text-gray-700 dark:text-slate-300 hover:bg-gray-200'
-                      }`}
-                      title="الاستماع الصوتي"
-                    >
-                      {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                    </button>
-
-                    <button
                       onClick={() => handleCopyText(activeItem.textArabic)}
                       className="p-1.5 rounded-xl bg-gray-100 dark:bg-[#182030] hover:bg-gray-200 dark:hover:bg-[#202B40] text-gray-700 dark:text-slate-300 transition cursor-pointer"
                       title="نسخ الذكر"
@@ -775,18 +755,6 @@ export const AdhkarScreen: React.FC<AdhkarScreenProps> = ({ initialCategoryId, o
                   </span>
 
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => toggleSpeech(activeItem.textArabic)}
-                      className={`p-1.5 rounded-lg transition cursor-pointer ${
-                        isSpeaking
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-100 dark:bg-[#182030] text-gray-700 dark:text-slate-300 hover:bg-gray-200'
-                      }`}
-                      title="الاستماع الصوتي"
-                    >
-                      {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                    </button>
-
                     <button
                       onClick={() => handleCopyText(activeItem.textArabic)}
                       className="p-1.5 rounded-lg bg-gray-100 dark:bg-[#182030] hover:bg-gray-200 dark:hover:bg-[#202B40] text-gray-700 dark:text-slate-300 transition cursor-pointer"

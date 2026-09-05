@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -46,6 +47,11 @@ fun DuasScreen(
     val currentDuas by viewModel.currentDuas.collectAsState()
 
     var searchQuery by remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selectedCategory) {
+        listState.animateScrollToItem(0)
+    }
 
     val displayedDuas = remember(searchQuery, currentDuas) {
         if (searchQuery.isBlank()) currentDuas else viewModel.duaRepository.searchDuas(searchQuery)
@@ -97,7 +103,10 @@ fun DuasScreen(
                     val isSelected = selectedCategory.id == category.id
                     FilterChip(
                         selected = isSelected,
-                        onClick = { viewModel.selectDuaCategory(category.id) },
+                        onClick = {
+                            searchQuery = ""
+                            viewModel.selectDuaCategory(category.id)
+                        },
                         label = { Text(category.titleArabic, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = SageTeal,
@@ -109,6 +118,7 @@ fun DuasScreen(
 
             // Duas List
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 90.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)

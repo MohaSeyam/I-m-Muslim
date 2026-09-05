@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { RotateCcw, Volume2, VolumeX, Sparkles, CheckCircle2 } from 'lucide-react';
 import { toArabicNumerals } from '../../data/quranData';
+import { islamicAudio } from '../../utils/audioService';
+import { getStoredSettings } from '../../utils/settingsStorage';
 
 const PRESET_PHRASES = [
   { text: 'سُبْحَانَ اللَّهِ', meaning: 'Glory be to Allah' },
@@ -18,50 +20,19 @@ export const TasbihScreen: React.FC = () => {
   const [target, setTarget] = useState(33);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedPhrase, setSelectedPhrase] = useState(PRESET_PHRASES[0]);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const s = getStoredSettings();
+    return s.soundEffects !== false;
+  });
 
   const playClickSound = () => {
     if (!soundEnabled) return;
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(560, ctx.currentTime);
-      gain.gain.setValueAtTime(0.06, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    } catch {
-      // Ignore
-    }
+    islamicAudio.playClick();
   };
 
   const playChimeSound = () => {
     if (!soundEnabled) return;
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      [660, 880, 1100].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.35);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.08);
-        osc.stop(ctx.currentTime + i * 0.08 + 0.4);
-      });
-    } catch {
-      // Ignore
-    }
+    islamicAudio.playDhikrCompletion();
   };
 
   const handleTap = () => {

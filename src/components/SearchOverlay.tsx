@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, X, BookOpen, Sparkles, Heart, ChevronLeft, ArrowRight } from 'lucide-react';
+import { Search, X, BookOpen, Sparkles, Heart, ChevronLeft, ArrowRight, FileText, Loader2 } from 'lucide-react';
 import { surahsList, toArabicNumerals } from '../data/quranData';
 import { dhikrCategories } from '../data/adhkarData';
 import { dailyDuas } from '../data/duasData';
+import { searchAyahsInQuran, QuranAyahSearchResult } from '../utils/quranSearchService';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -10,11 +11,11 @@ interface SearchOverlayProps {
   onNavigate: (tab: string, subParam?: any) => void;
 }
 
-type SearchCategory = 'all' | 'quran' | 'adhkar' | 'duas';
+type SearchCategory = 'all' | 'ayahs' | 'quran' | 'adhkar' | 'duas';
 
 interface SearchResultItem {
   id: string;
-  type: 'quran' | 'adhkar' | 'duas';
+  type: 'ayah' | 'quran' | 'adhkar' | 'duas';
   title: string;
   subtitle: string;
   badge: string;
@@ -29,6 +30,8 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<SearchCategory>('all');
+  const [ayahResults, setAyahResults] = useState<QuranAyahSearchResult[]>([]);
+  const [isSearchingAyahs, setIsSearchingAyahs] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,8 +43,42 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
     } else {
       setQuery('');
       setActiveCategory('all');
+      setAyahResults([]);
+      setIsSearchingAyahs(false);
     }
   }, [isOpen]);
+
+  // Debounced search inside Quran Ayahs
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!isOpen || trimmed.length < 2) {
+      setAyahResults([]);
+      setIsSearchingAyahs(false);
+      return;
+    }
+
+    let isMounted = true;
+    const controller = new AbortController();
+    setIsSearchingAyahs(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const matches = await searchAyahsInQuran(trimmed, controller.signal);
+        if (isMounted) {
+          setAyahResults(matches);
+          setIsSearchingAyahs(false);
+        }
+      } catch {
+        if (isMounted) setIsSearchingAyahs(false);
+      }
+    }, 280);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [query, isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -159,13 +196,68 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
         }
       ];
 
-      const all = [...defaultSurahs, ...defaultAdhkar, ...defaultDuas];
+      const defaultAyahs: SearchResultItem[] = [
+        {
+          id: 'ayah_2_255',
+          type: 'ayah',
+          title: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ',
+          subtitle: 'سورة البقرة • آية ٢٥٥ (آية الكرسي) • صفحة ٤٢',
+          badge: 'آية الكرسي',
+          targetTab: 'quran',
+          targetParam: { pageNumber: 42, surahNumber: 2 }
+        },
+        {
+          id: 'ayah_1_1',
+          type: 'ayah',
+          title: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ • الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
+          subtitle: 'سورة الفاتحة • آية ١-٢ • صفحة ١',
+          badge: 'فاتحة الكتاب',
+          targetTab: 'quran',
+          targetParam: { pageNumber: 1, surahNumber: 1 }
+        },
+        {
+          id: 'ayah_94_5',
+          type: 'ayah',
+          title: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا • إِنَّ مَعَ الْعُسْرِ يُسْرًا',
+          subtitle: 'سورة الشرح • آية ٥-٦ • صفحة ٥٩٦',
+          badge: 'بشارة وتيسير',
+          targetTab: 'quran',
+          targetParam: { pageNumber: 596, surahNumber: 94 }
+        },
+        {
+          id: 'ayah_112_1',
+          type: 'ayah',
+          title: 'قُلْ هُوَ اللَّهُ أَحَدٌ • اللَّهُ الصَّمَدُ • لَمْ يَلِدْ وَلَمْ يُولَدْ',
+          subtitle: 'سورة الإخلاص • صفحة ٦٠٤',
+          badge: 'توحيد وإخلاص',
+          targetTab: 'quran',
+          targetParam: { pageNumber: 604, surahNumber: 112 }
+        }
+      ];
+
+      const all = [...defaultSurahs, ...defaultAyahs, ...defaultAdhkar, ...defaultDuas];
       if (activeCategory === 'all') return all;
-      return all.filter(item => item.type === activeCategory);
+      const targetType = activeCategory === 'ayahs' ? 'ayah' : activeCategory;
+      return all.filter(item => item.type === targetType);
     }
 
     const normQuery = normalizeArabic(trimmed);
     const matchedItems: SearchResultItem[] = [];
+
+    // 0. Search Inside Quran Ayahs (Words & Verses)
+    if (activeCategory === 'all' || activeCategory === 'ayahs') {
+      for (const ayah of ayahResults) {
+        matchedItems.push({
+          id: `ayah_${ayah.surahNumber}_${ayah.ayahNumberInSurah}`,
+          type: 'ayah',
+          title: ayah.textArabic,
+          subtitle: `سورة ${ayah.surahNameArabic} • آية ${toArabicNumerals(ayah.ayahNumberInSurah)} • صفحة ${toArabicNumerals(ayah.pageNumber)}`,
+          badge: 'آية كريمة',
+          targetTab: 'quran',
+          targetParam: { pageNumber: ayah.pageNumber, surahNumber: ayah.surahNumber }
+        });
+      }
+    }
 
     // 1. Search Quran Surahs
     if (activeCategory === 'all' || activeCategory === 'quran') {
@@ -241,7 +333,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
     }
 
     return matchedItems;
-  }, [query, activeCategory]);
+  }, [query, activeCategory, ayahResults]);
 
   const handleSelect = (item: SearchResultItem) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -269,9 +361,14 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="ابحث عن سورة، رقم صفحة، ذكر، أو دعاء..."
+                placeholder="ابحث بكلمة داخل آيات القرآن، سورة، أو دعاء..."
                 className="w-full pl-9 pr-10 py-2.5 rounded-2xl bg-gray-100 dark:bg-[#162032] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-slate-100 text-sm placeholder-gray-400 dark:placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition font-sans"
               />
+              {isSearchingAyahs && (
+                <div className="absolute left-8 flex items-center">
+                  <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                </div>
+              )}
               {query && (
                 <button
                   onClick={() => setQuery('')}
@@ -302,6 +399,17 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
               }`}
             >
               الكل
+            </button>
+            <button
+              onClick={() => setActiveCategory('ayahs')}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer flex-shrink-0 flex items-center gap-1.5 ${
+                activeCategory === 'ayahs'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-gray-100 dark:bg-[#162032] text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-[#1e2a40]'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>آيات القرآن {ayahResults.length > 0 && `(${toArabicNumerals(ayahResults.length)})`}</span>
             </button>
             <button
               onClick={() => setActiveCategory('quran')}
@@ -341,22 +449,50 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 
         {/* 3. Search Results List */}
         <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-1.5 custom-scrollbar">
-          {results.length === 0 ? (
-            <div className="py-12 text-center text-gray-400 dark:text-slate-500">
-              <Search className="w-8 h-8 mx-auto mb-2 opacity-30 text-emerald-500" />
-              <p className="text-xs font-bold">لم يتم العثور على نتائج تطابق بحثك</p>
-              <p className="text-[11px] mt-1">جرّب كتابة اسم سورة مثل «البقرة» أو ذكر مثل «الصباح»</p>
+          {isSearchingAyahs && results.length === 0 ? (
+            <div className="py-14 text-center text-gray-500 dark:text-slate-400">
+              <Loader2 className="w-8 h-8 mx-auto mb-2.5 text-emerald-600 animate-spin" />
+              <p className="text-xs font-bold font-display">جاري البحث في آيات وكلمات القرآن الكريم...</p>
+              <p className="text-[11px] mt-1 text-gray-400">البحث عن «{query}»</p>
+            </div>
+          ) : results.length === 0 ? (
+            <div className="py-12 text-center text-gray-400 dark:text-slate-500 space-y-3">
+              <Search className="w-8 h-8 mx-auto opacity-30 text-emerald-500" />
+              <div>
+                <p className="text-xs font-bold">لم يتم العثور على نتائج تطابق بحثك</p>
+                <p className="text-[11px] mt-1">جرّب كتابة كلمة من آية مثل «الصابرين» أو سورة مثل «البقرة»</p>
+              </div>
+              <div className="pt-2">
+                <p className="text-[10px] text-gray-400 mb-1.5 font-bold">كلمات شائعة للبحث في الآيات:</p>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-sm mx-auto">
+                  {['الصابرين', 'الرحمن', 'الجنة', 'المتقين', 'ألا بذكر الله', 'الحمد لله', 'العسر يسرا'].map(word => (
+                    <button
+                      key={word}
+                      onClick={() => setQuery(word)}
+                      className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-[#1A2232] hover:bg-emerald-50 dark:hover:bg-[#1f2d42] text-[11px] text-gray-700 dark:text-slate-300 hover:text-emerald-600 transition cursor-pointer border border-gray-200/60 dark:border-white/5"
+                    >
+                      {word}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             results.map((item) => {
+              const isAyah = item.type === 'ayah';
               return (
                 <div
                   key={item.id}
                   onClick={() => handleSelect(item)}
-                  className="p-2.5 sm:p-3 rounded-2xl bg-white dark:bg-[#141C2B] hover:bg-emerald-50/70 dark:hover:bg-[#1A2436] border border-gray-200/70 dark:border-white/5 hover:border-emerald-500/30 transition cursor-pointer flex items-center justify-between group active:scale-[0.99]"
+                  className={`p-2.5 sm:p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between group active:scale-[0.99] ${
+                    isAyah
+                      ? 'bg-emerald-50/50 dark:bg-[#121E2C] hover:bg-emerald-100/60 dark:hover:bg-[#172538] border-emerald-500/25 dark:border-emerald-500/20'
+                      : 'bg-white dark:bg-[#141C2B] hover:bg-emerald-50/70 dark:hover:bg-[#1A2436] border-gray-200/70 dark:border-white/5 hover:border-emerald-500/30'
+                  }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <div className="w-9 h-9 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                      {item.type === 'ayah' && <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
                       {item.type === 'quran' && <BookOpen className="w-4 h-4" />}
                       {item.type === 'adhkar' && <Sparkles className="w-4 h-4" />}
                       {item.type === 'duas' && <Heart className="w-4 h-4" />}
@@ -364,7 +500,9 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <h4 className="font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-100 truncate font-display">
+                        <h4 className={`text-xs sm:text-sm text-gray-900 dark:text-slate-100 truncate ${
+                          isAyah ? 'font-quran text-sm sm:text-base leading-relaxed text-emerald-950 dark:text-emerald-200 font-semibold' : 'font-bold font-display'
+                        }`}>
                           {item.title}
                         </h4>
                         <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold flex-shrink-0">

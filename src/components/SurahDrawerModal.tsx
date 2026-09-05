@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { SurahMeta } from '../types';
 import { surahsList, juzData, toArabicNumerals } from '../data/quranData';
+import { searchAyahsInQuran, QuranAyahSearchResult } from '../utils/quranSearchService';
 import {
   Search,
   X,
@@ -13,7 +14,9 @@ import {
   Star,
   CheckCircle2,
   Compass,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  Loader2
 } from 'lucide-react';
 
 interface SurahDrawerModalProps {
@@ -43,10 +46,12 @@ export const SurahDrawerModal: React.FC<SurahDrawerModalProps> = ({
   onSelectSurah,
   onSelectJuz,
 }) => {
-  const [activeTab, setActiveTab] = useState<'surahs' | 'juz' | 'pages'>('surahs');
+  const [activeTab, setActiveTab] = useState<'surahs' | 'ayahs' | 'juz' | 'pages'>('surahs');
   const [searchQuery, setSearchQuery] = useState('');
   const [revelationFilter, setRevelationFilter] = useState<'all' | 'Meccan' | 'Medinan' | 'popular'>('all');
   const [pageJumpInput, setPageJumpInput] = useState(currentPage ? currentPage.toString() : '1');
+  const [ayahSearchResults, setAyahSearchResults] = useState<QuranAyahSearchResult[]>([]);
+  const [isSearchingAyahs, setIsSearchingAyahs] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -54,8 +59,44 @@ export const SurahDrawerModal: React.FC<SurahDrawerModalProps> = ({
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 100);
+    } else {
+      setSearchQuery('');
+      setAyahSearchResults([]);
+      setIsSearchingAyahs(false);
     }
   }, [isOpen]);
+
+  // Debounced search inside Quran Ayahs
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!isOpen || trimmed.length < 2) {
+      setAyahSearchResults([]);
+      setIsSearchingAyahs(false);
+      return;
+    }
+
+    let isMounted = true;
+    const controller = new AbortController();
+    setIsSearchingAyahs(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const matches = await searchAyahsInQuran(trimmed, controller.signal);
+        if (isMounted) {
+          setAyahSearchResults(matches);
+          setIsSearchingAyahs(false);
+        }
+      } catch {
+        if (isMounted) setIsSearchingAyahs(false);
+      }
+    }, 280);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [searchQuery, isOpen]);
 
   // Determine which surah the user is currently reading
   const currentSurahNumber = useMemo(() => {
@@ -153,56 +194,87 @@ export const SurahDrawerModal: React.FC<SurahDrawerModalProps> = ({
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="ابحث عن اسم السورة، رقمها، أو رقم الصفحة (مثال: الكهف، 18، 293)..."
-              className="w-full bg-gray-50 dark:bg-[#182030] border border-coolgreen-600/20 dark:border-white/10 rounded-2xl pr-10 pl-10 py-2.5 text-xs sm:text-sm font-medium text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 shadow-xs"
+              placeholder="ابحث عن كلمة بالآيات، سورة، أو صفحة (مثال: الصابرين، الكهف، 293)..."
+              className="w-full bg-gray-50 dark:bg-[#182030] border border-coolgreen-600/20 dark:border-white/10 rounded-2xl pr-10 pl-16 py-2.5 text-xs sm:text-sm font-medium text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 shadow-xs"
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200"
-                title="مسح البحث"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {isSearchingAyahs && (
+                <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+              )}
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 cursor-pointer"
+                  title="مسح البحث"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* Quick ayah matches banner if found while on another tab */}
+          {ayahSearchResults.length > 0 && activeTab !== 'ayahs' && (
+            <div 
+              onClick={() => setActiveTab('ayahs')}
+              className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-300 text-xs flex items-center justify-between cursor-pointer hover:bg-emerald-500/15 transition"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                <span>عُثر على {toArabicNumerals(ayahSearchResults.length)} آية تحتوي على «{searchQuery}»</span>
+              </div>
+              <span className="font-bold underline text-[11px]">عرض الآيات ←</span>
+            </div>
+          )}
+
           {/* Navigation Mode Segmented Switcher */}
-          <div className="grid grid-cols-3 gap-1 bg-gray-100 dark:bg-[#1A2232] p-1 rounded-2xl border border-gray-200/80 dark:border-white/5">
+          <div className="grid grid-cols-4 gap-1 bg-gray-100 dark:bg-[#1A2232] p-1 rounded-2xl border border-gray-200/80 dark:border-white/5">
             <button
               onClick={() => setActiveTab('surahs')}
-              className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`py-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
                 activeTab === 'surahs'
                   ? 'bg-coolgreen-800 dark:bg-emerald-600 text-white shadow-xs'
                   : 'text-gray-600 dark:text-slate-300 hover:text-gray-900'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>السور ({toArabicNumerals(114)})</span>
+              <span>السور</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('ayahs')}
+              className={`py-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                activeTab === 'ayahs'
+                  ? 'bg-coolgreen-800 dark:bg-emerald-600 text-white shadow-xs'
+                  : 'text-gray-600 dark:text-slate-300 hover:text-gray-900'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>الآيات {ayahSearchResults.length > 0 && `(${toArabicNumerals(ayahSearchResults.length)})`}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('juz')}
-              className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`py-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
                 activeTab === 'juz'
                   ? 'bg-coolgreen-800 dark:bg-emerald-600 text-white shadow-xs'
                   : 'text-gray-600 dark:text-slate-300 hover:text-gray-900'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>الأجزاء ({toArabicNumerals(30)})</span>
+              <span>الأجزاء</span>
             </button>
 
             <button
               onClick={() => setActiveTab('pages')}
-              className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`py-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
                 activeTab === 'pages'
                   ? 'bg-coolgreen-800 dark:bg-emerald-600 text-white shadow-xs'
                   : 'text-gray-600 dark:text-slate-300 hover:text-gray-900'
               }`}
             >
               <Compass className="w-3.5 h-3.5" />
-              <span>الصفحات ({toArabicNumerals(604)})</span>
+              <span>الصفحات</span>
             </button>
           </div>
         </div>
@@ -236,9 +308,45 @@ export const SurahDrawerModal: React.FC<SurahDrawerModalProps> = ({
 
               {/* Surah List Grid */}
               {filteredSurahs.length === 0 ? (
-                <div className="p-8 text-center space-y-2 text-gray-500 dark:text-slate-400">
-                  <p className="font-bold text-sm">لم يتم العثور على سور مطابقة للبحث</p>
-                  <p className="text-xs">جرّب كتابة اسم السورة أو رقمها بطريقة أخرى</p>
+                <div className="p-6 rounded-3xl bg-white dark:bg-[#141A26] border border-coolgreen-600/15 dark:border-white/10 text-center space-y-4 shadow-xs">
+                  {ayahSearchResults.length > 0 ? (
+                    <div className="space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-sm sm:text-base text-gray-900 dark:text-slate-100">
+                          عُثر على {toArabicNumerals(ayahSearchResults.length)} آية كريمة تحتوي على «{searchQuery}»
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                          لم يتم العثور على سورة بهذا الاسم، ولكن الكلمة موجودة في نص الآيات الكريمة
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('ayahs')}
+                        className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition cursor-pointer inline-flex items-center gap-2"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>عرض الآيات المطابقة ({toArabicNumerals(ayahSearchResults.length)})</span>
+                      </button>
+                    </div>
+                  ) : isSearchingAyahs ? (
+                    <div className="py-8 text-center space-y-2 text-gray-500 dark:text-slate-400">
+                      <Loader2 className="w-6 h-6 mx-auto text-emerald-600 animate-spin" />
+                      <p className="font-bold text-xs">جاري البحث في آيات المصحف الشريف عن «{searchQuery}»...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 py-4">
+                      <p className="font-bold text-sm text-gray-900 dark:text-slate-100">لم يتم العثور على سور مطابقة للبحث</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">جرّب البحث في تبويب «الآيات» لكلمات داخل نصوص القرآن</p>
+                      <button
+                        onClick={() => setActiveTab('ayahs')}
+                        className="mt-2 px-4 py-1.5 rounded-xl bg-gray-100 dark:bg-[#1A2232] text-emerald-700 dark:text-emerald-400 text-xs font-bold transition cursor-pointer"
+                      >
+                        الانتقال إلى بحث الآيات ←
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-2 sm:gap-2.5">
@@ -308,7 +416,94 @@ export const SurahDrawerModal: React.FC<SurahDrawerModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: JUZ LIST */}
+          {/* TAB 2: AYAHS SEARCH LIST */}
+          {activeTab === 'ayahs' && (
+            <div className="space-y-3">
+              {isSearchingAyahs ? (
+                <div className="py-16 text-center text-gray-500 dark:text-slate-400">
+                  <Loader2 className="w-8 h-8 mx-auto mb-2 text-emerald-600 animate-spin" />
+                  <p className="text-xs font-bold font-display">جاري البحث في آيات المصحف الشريف...</p>
+                  <p className="text-[11px] mt-1">البحث عن «{searchQuery}»</p>
+                </div>
+              ) : !searchQuery.trim() || searchQuery.trim().length < 2 ? (
+                <div className="p-6 rounded-3xl bg-white dark:bg-[#141A26] border border-coolgreen-600/15 dark:border-white/10 text-center space-y-4 shadow-xs">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold font-display text-sm sm:text-base text-gray-900 dark:text-slate-100">
+                      البحث في نص آيات القرآن الكريم
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 max-w-md mx-auto">
+                      اكتب أي كلمة أو عبارة في مربع البحث للوصول المباشر إلى الآية الكريمة ورقمها ومكانها في المصحف.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <p className="text-[11px] font-bold text-gray-400 mb-2">كلمات مقترحة للبحث السريع:</p>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {['الصابرين', 'الرحمن', 'الجنة', 'المتقين', 'ألا بذكر الله', 'والوالدين', 'الحمد لله'].map(word => (
+                        <button
+                          key={word}
+                          onClick={() => setSearchQuery(word)}
+                          className="px-3 py-1 rounded-xl bg-gray-100 dark:bg-[#1A2232] hover:bg-emerald-100 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 text-xs font-medium transition cursor-pointer border border-gray-200/60 dark:border-white/5"
+                        >
+                          {word}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : ayahSearchResults.length === 0 ? (
+                <div className="py-14 text-center text-gray-400 dark:text-slate-500">
+                  <Search className="w-8 h-8 mx-auto mb-2 opacity-30 text-emerald-500" />
+                  <p className="text-xs font-bold">لم يتم العثور على آيات تحتوي على «{searchQuery}»</p>
+                  <p className="text-[11px] mt-1">جرّب البحث بكلمة مجردة أخرى (مثل «الصبر» أو «الجنة»)</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1 text-xs text-gray-500 dark:text-slate-400">
+                    <span>نتائج البحث عن «{searchQuery}»:</span>
+                    <span className="font-bold text-coolgreen-800 dark:text-emerald-400">
+                      {toArabicNumerals(ayahSearchResults.length)} آية
+                    </span>
+                  </div>
+
+                  {ayahSearchResults.map(ayah => (
+                    <div
+                      key={`ayah_drawer_${ayah.surahNumber}_${ayah.ayahNumberInSurah}`}
+                      onClick={() => {
+                        onSelectSurah(ayah.surahNumber, ayah.pageNumber);
+                        onClose();
+                      }}
+                      className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#141A26] border border-coolgreen-600/20 dark:border-white/10 hover:border-emerald-500/50 hover:bg-emerald-50/40 dark:hover:bg-[#1A2436] transition cursor-pointer space-y-2.5 shadow-2xs group"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-bold text-xs font-display">
+                            سورة {ayah.surahNameArabic}
+                          </span>
+                          <span className="text-[11px] text-gray-500 dark:text-slate-400 font-sans">
+                            الآية {toArabicNumerals(ayah.ayahNumberInSurah)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1 text-xs font-bold text-coolgreen-800 dark:text-emerald-400 font-sans">
+                          <span>ص {toArabicNumerals(ayah.pageNumber)}</span>
+                          <ChevronLeft className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-500 transition" />
+                        </div>
+                      </div>
+
+                      <p className="font-quran text-base sm:text-lg leading-loose text-coolgreen-950 dark:text-emerald-100 text-right pr-1">
+                        {ayah.textArabic}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: JUZ LIST */}
           {activeTab === 'juz' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-2 sm:gap-2.5">
               {juzData.map(juz => {

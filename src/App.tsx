@@ -73,7 +73,9 @@ export const App: React.FC = () => {
 
   // When changing tabs, exit fullscreen mode & update history
   const handleNavigate = (tab: string, subParam?: any) => {
-    setIsReadingFullscreen(false);
+    if (tab !== 'quran') {
+      setIsReadingFullscreen(false);
+    }
 
     if (tab === 'adhkar' && typeof subParam === 'string') {
       setAdhkarCategoryParam(subParam);
@@ -164,7 +166,7 @@ export const App: React.FC = () => {
         className={`flex-1 min-h-0 w-full relative z-10 flex flex-col overflow-hidden ${
           isFullscreenQuran
             ? 'p-0 m-0 max-w-none h-full'
-            : 'max-w-xl landscape:max-w-5xl mx-auto px-2 sm:px-3 landscape:px-3 py-1 landscape:py-0.5'
+            : 'max-w-xl landscape:max-w-5xl mx-auto px-2 sm:px-3 landscape:px-3 py-1 landscape:py-0.5 pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]'
         }`}
       >
         {activeTab === 'home' && (

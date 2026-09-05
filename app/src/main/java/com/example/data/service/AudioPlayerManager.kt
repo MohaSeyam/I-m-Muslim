@@ -107,6 +107,30 @@ class AudioPlayerManager(private val context: Context) {
         }
     }
 
+    private var toneGenerator: android.media.ToneGenerator? = null
+
+    fun playDhikrCompletionTone() {
+        try {
+            if (toneGenerator == null) {
+                toneGenerator = android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 75)
+            }
+            toneGenerator?.startTone(android.media.ToneGenerator.TONE_PROP_BEEP2, 180)
+        } catch (_: Exception) {
+            // Ignored safely
+        }
+    }
+
+    fun playBeadClick() {
+        try {
+            if (toneGenerator == null) {
+                toneGenerator = android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 45)
+            }
+            toneGenerator?.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 30)
+        } catch (_: Exception) {
+            // Ignored safely
+        }
+    }
+
     fun stop() {
         try {
             mediaPlayer?.stop()

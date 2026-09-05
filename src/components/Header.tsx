@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   if (isHidden) return null;
 
   return (
-    <header className="h-14 landscape:h-11 flex-shrink-0 z-40 liquid-glass border-b border-gray-200/80 dark:border-white/10 px-3 sm:px-4 landscape:px-4 flex items-center transition-all duration-300">
+    <header className="h-14 landscape:h-11 flex-shrink-0 z-40 liquid-glass border-b border-gray-200/80 dark:border-white/10 px-3 sm:px-4 landscape:px-4 flex items-center transition-all duration-300 pt-[env(safe-area-inset-top,0px)] box-content">
       <div className="w-full max-w-xl landscape:max-w-5xl mx-auto flex items-center justify-between">
         {/* Brand & Hijri Date / Back Button */}
         <div className="flex items-center gap-2">
