@@ -173,8 +173,8 @@ object QuranStaticData {
                 numberInQuran = surahNumber * 100 + index,
                 surahNumber = surahNumber,
                 numberInSurah = index,
-                textArabic = if (index == 1 && surahNumber != 9) "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ" else "آية من سورة ${surah.nameArabic} رقم ($index)",
-                textEnglish = if (index == 1 && surahNumber != 9) "In the name of Allah, the Entirely Merciful, the Especially Merciful." else "Verse $index of Surah ${surah.nameEnglish}.",
+                textArabic = if (index == 1 && surahNumber == 1) "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ" else "آية من سورة ${surah.nameArabic} رقم ($index)",
+                textEnglish = if (index == 1 && surahNumber == 1) "In the name of Allah, the Entirely Merciful, the Especially Merciful." else "Verse $index of Surah ${surah.nameEnglish}.",
                 tafsirMuyassar = "تفسير الآية الكريمة من سورة ${surah.nameArabic} من التفسير الميسر المعتمد.",
                 page = surah.pageNumber
             )

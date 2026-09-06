@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { surahsList, juzData, toArabicNumerals, getPageMeta, PageMetaInfo } from '../../data/quranData';
-import { fetchPageAyahs, preloadAdjacentPages, PageAyahExtended, getBundledPageAyahsSync } from '../../utils/quranService';
+import { fetchPageAyahs, preloadAdjacentPages, PageAyahExtended, getBundledPageAyahsSync, cleanAyahBasmalah } from '../../utils/quranService';
 import {
   getQuranLastReadPage,
   saveQuranLastReadPage,
@@ -425,8 +425,10 @@ export const QuranScreen: React.FC<QuranScreenProps> = ({
     const sections: PageSection[] = [];
     let currentSection: PageSection | null = null;
 
-    pageAyahs.forEach(ayah => {
-      const isStartOfSurah = ayah.numberInSurah === 1;
+    pageAyahs.forEach(rawAyah => {
+      const isStartOfSurah = rawAyah.numberInSurah === 1;
+      const cleanArabic = cleanAyahBasmalah(rawAyah.textArabic, rawAyah.surahNumber, rawAyah.numberInSurah);
+      const ayah = rawAyah.textArabic !== cleanArabic ? { ...rawAyah, textArabic: cleanArabic } : rawAyah;
 
       if (!currentSection || currentSection.surahNumber !== ayah.surahNumber || isStartOfSurah) {
         const surahInfo = surahsList.find(s => s.number === ayah.surahNumber) || pageMeta.primarySurah;

@@ -2,7 +2,20 @@ import { Ayah } from '../types';
 import { sampleSurahAyahs, surahsList } from '../data/quranData';
 import { generateOfflinePagePayload } from '../data/quranOfflineData';
 
-const PAGE_CACHE_KEY_PREFIX = 'ana_muslim_mushaf_v9_';
+const PAGE_CACHE_KEY_PREFIX = 'ana_muslim_mushaf_v10_';
+
+export const BASMALAH_REGEX = /^\s*بِسْمِ\s+[ٱا]للَّ?هِ\s+[ٱا]لرَّحْمَٰ?نِ\s+[ٱا]لرَّحِيمِ\s*/u;
+
+/**
+ * Removes prefixed Basmalah from Ayah 1 of any surah except Surah Al-Fatihah (Surah 1).
+ * Surah Al-Fatihah retains it as verse 1. For other surahs, Basmalah is displayed in the surah header.
+ */
+export function cleanAyahBasmalah(text: string, surahNumber?: number, numberInSurah?: number): string {
+  if (!text) return '';
+  if (surahNumber === 1) return text;
+  if (numberInSurah !== undefined && numberInSurah !== 1) return text;
+  return text.replace(BASMALAH_REGEX, '').trim();
+}
 
 export interface PageAyahExtended extends Ayah {
   surahNumber?: number;
@@ -24,7 +37,10 @@ export function getCachedPageAyahs(pageNumber: number): PageAyahExtended[] | nul
           !a.textArabic.includes('﴿ سورة')
         );
         if (isAuthentic) {
-          return parsed;
+          return parsed.map(a => ({
+            ...a,
+            textArabic: cleanAyahBasmalah(a.textArabic, a.surahNumber, a.numberInSurah)
+          }));
         } else {
           localStorage.removeItem(`${PAGE_CACHE_KEY_PREFIX}${pageNumber}`);
         }
@@ -46,7 +62,11 @@ export function saveCachedPageAyahs(pageNumber: number, ayahs: PageAyahExtended[
       !a.textArabic.includes('﴿ سورة')
     );
     if (isAuthentic && ayahs.length > 0) {
-      localStorage.setItem(`${PAGE_CACHE_KEY_PREFIX}${pageNumber}`, JSON.stringify(ayahs));
+      const cleaned = ayahs.map(a => ({
+        ...a,
+        textArabic: cleanAyahBasmalah(a.textArabic, a.surahNumber, a.numberInSurah)
+      }));
+      localStorage.setItem(`${PAGE_CACHE_KEY_PREFIX}${pageNumber}`, JSON.stringify(cleaned));
     }
   } catch (e) {
     console.warn('Storage quota reached or saving cached page failed', e);
@@ -72,6 +92,14 @@ export async function loadBundledQuranPages(): Promise<Record<string, PageAyahEx
         return res.json();
       })
       .then(data => {
+        for (const pageKey in data) {
+          const arr = data[pageKey];
+          if (Array.isArray(arr)) {
+            for (const a of arr) {
+              a.textArabic = cleanAyahBasmalah(a.textArabic, a.surahNumber, a.numberInSurah);
+            }
+          }
+        }
         localPagesMap = data;
         return data;
       })
@@ -94,7 +122,11 @@ if (typeof window !== 'undefined') {
 export function getBundledPageAyahsSync(pageNumber: number): { ayahs: PageAyahExtended[]; surahsOnPage: { number: number; nameArabic: string }[] } | null {
   const safePage = Math.min(604, Math.max(1, pageNumber));
   if (localPagesMap && localPagesMap[String(safePage)] && localPagesMap[String(safePage)].length > 0) {
-    const ayahs = localPagesMap[String(safePage)];
+    const rawAyahs = localPagesMap[String(safePage)];
+    const ayahs = rawAyahs.map(a => ({
+      ...a,
+      textArabic: cleanAyahBasmalah(a.textArabic, a.surahNumber, a.numberInSurah)
+    }));
     const surahSet = new Map<number, string>();
     ayahs.forEach(a => {
       if (a.surahNumber && a.surahNameArabic) {

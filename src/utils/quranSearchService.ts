@@ -1,6 +1,6 @@
 import { surahsList, juzData, toArabicNumerals } from '../data/quranData';
 import { offlineSurahDatabase } from '../data/quranOfflineData';
-import { loadBundledQuranPages } from './quranService';
+import { loadBundledQuranPages, cleanAyahBasmalah } from './quranService';
 
 export interface QuranAyahSearchResult {
   surahNumber: number;
@@ -90,7 +90,8 @@ export async function searchAyahsInQuran(
         if (!Array.isArray(pageAyahs)) continue;
         const pageNum = Number(pageStr);
         for (const ayah of pageAyahs) {
-          const normText = normalizeArabic(ayah.textArabic || '');
+          const cleanText = cleanAyahBasmalah(ayah.textArabic || '', ayah.surahNumber || 1, ayah.numberInSurah);
+          const normText = normalizeArabic(cleanText);
           if (normText.includes(normalizedQ)) {
             const key = `${ayah.surahNumber || 1}:${ayah.numberInSurah}`;
             if (!seenKeys.has(key)) {
@@ -100,7 +101,7 @@ export async function searchAyahsInQuran(
                 surahNameArabic: ayah.surahNameArabic || '',
                 ayahNumberInSurah: ayah.numberInSurah,
                 ayahNumberOverall: ayah.number || 0,
-                textArabic: ayah.textArabic,
+                textArabic: cleanText,
                 pageNumber: ayah.pageNumber || pageNum,
                 juzNumber: ayah.juzNumber
               });

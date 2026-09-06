@@ -185,6 +185,12 @@ class QuranRepository(private val context: Context? = null) {
         }
     }
 
+    private val basmalahRegex = Regex("^\\s*بِسْمِ\\s+[ٱا]للَّ?هِ\\s+[ٱا]لرَّحْمَٰ?نِ\\s+[ٱا]لرَّحِيمِ\\s*")
+
+    private fun stripBasmalah(text: String): String {
+        return text.replace(basmalahRegex, "").trim()
+    }
+
     private fun loadSurahFromAssets(surahNumber: Int): List<Ayah> {
         val root = getRootJson() ?: return emptyList()
         val surahObj = root.optJSONObject(surahNumber.toString()) ?: return emptyList()
@@ -192,12 +198,20 @@ class QuranRepository(private val context: Context? = null) {
         val list = ArrayList<Ayah>(ayahsArray.length())
         for (i in 0 until ayahsArray.length()) {
             val a = ayahsArray.getJSONObject(i)
+            val numInSurah = a.optInt("numberInSurah")
+            val rawArabic = a.optString("textArabic")
+            val cleanArabic = if (surahNumber != 1 && numInSurah == 1) {
+                stripBasmalah(rawArabic)
+            } else {
+                rawArabic
+            }
+
             list.add(
                 Ayah(
                     numberInQuran = a.optInt("number"),
                     surahNumber = surahNumber,
-                    numberInSurah = a.optInt("numberInSurah"),
-                    textArabic = a.optString("textArabic"),
+                    numberInSurah = numInSurah,
+                    textArabic = cleanArabic,
                     textEnglish = a.optString("textEnglish"),
                     tafsirMuyassar = a.optString("tafseer"),
                     page = a.optInt("page", 1),
@@ -251,11 +265,11 @@ class QuranRepository(private val context: Context? = null) {
         val all = getAllAyahs()
         if (all.isNotEmpty()) {
             val normQuery = normalizeArabic(trimmed).lowercase()
-            val matches = all.filter {
+            val matches = all.asSequence().filter {
                 normalizeArabic(it.textArabic).contains(normQuery, ignoreCase = true) ||
                 it.textEnglish.contains(query, ignoreCase = true) ||
                 normalizeArabic(it.tafsirMuyassar).contains(normQuery, ignoreCase = true)
-            }.distinctBy { "${it.surahNumber}:${it.numberInSurah}" }
+            }.distinctBy { "${it.surahNumber}:${it.numberInSurah}" }.take(60).toList()
             if (matches.isNotEmpty()) return matches
         }
 
